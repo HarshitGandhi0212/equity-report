@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JAINREC • Risk Score Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#08090d;--bg-2:#0d0f15;--bg-3:#11141c;--line:#1d212c;--line-2:#262b38;--text:#e6e8ee;--text-2:#9aa0ad;--text-3:#5a6071;--green:#3ddc97;--green-soft:#10271f;--red:#ff5470;--red-soft:#2a121a;--amber:#ffb547;--amber-soft:#2a1e0e;--accent:#7cc1ff;--gold:#d4af37;--copper:#cb6843;--mono:'JetBrains Mono',ui-monospace,monospace;--sans:'DM Sans',system-ui,sans-serif;--serif:'Fraunces',Georgia,serif;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  body{background:radial-gradient(1200px 600px at 10% -10%, rgba(124,193,255,.04), transparent 60%),radial-gradient(900px 500px at 100% 0%, rgba(255,84,112,.04), transparent 50%),linear-gradient(180deg, var(--bg) 0%, #06070b 100%);min-height:100vh;padding:24px 16px 80px;}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse at 50% 0%, #000 30%, transparent 80%);}
+  .page{position:relative;z-index:1;max-width:1280px;margin:0 auto 32px;background:linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);border:1px solid var(--line);border-radius:2px;overflow:hidden;}
+  .page-inner{padding:28px 32px;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 32px;border-bottom:1px solid var(--line);background:linear-gradient(90deg, #0a0c11, #0d0f15);}
+  .topbar-left{display:flex;align-items:center;gap:16px;}
+  .ticker-block{display:flex;align-items:baseline;gap:10px;}
+  .ticker{font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.5px;color:var(--text);}
+  .exchange{font-family:var(--mono);font-size:10px;color:var(--text-3);border:1px solid var(--line-2);padding:2px 6px;border-radius:2px;letter-spacing:1px;}
+  .company{font-size:13px;color:var(--text-2);font-weight:400;}
+  .price-block{display:flex;align-items:baseline;gap:14px;}
+  .ltp{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text);}
+  .chg{font-family:var(--mono);font-size:13px;font-weight:500;}
+  .chg.dn{color:var(--red);}
+  .meta{display:flex;gap:18px;font-family:var(--mono);font-size:10.5px;color:var(--text-3);letter-spacing:.5px;text-transform:uppercase;}
+  .meta span b{color:var(--text-2);font-weight:500;}
+  .report-head{padding:28px 32px 18px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;border-bottom:1px solid var(--line);}
+  .report-title{font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.05;letter-spacing:-.5px;color:var(--text);}
+  .report-title em{font-style:italic;color:var(--red);font-weight:400;}
+  .report-sub{font-size:12.5px;color:var(--text-2);margin-top:8px;max-width:640px;line-height:1.55;}
+  .stamp{text-align:right;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;line-height:1.8;}
+  .stamp b{color:var(--text);font-weight:500;}
+  .row{display:grid;gap:20px;}
+  .row.two{grid-template-columns:1.2fr 1fr;}
+  @media (max-width:980px){.row.two{grid-template-columns:1fr;}}
+  .panel{background:var(--bg-3);border:1px solid var(--line);border-radius:2px;padding:20px;position:relative;}
+  .panel-label{font-family:var(--mono);font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-3);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+  .panel-label .pl-tag{background:var(--line);color:var(--text-2);padding:2px 7px;border-radius:1px;font-size:9px;letter-spacing:1px;}
+  .gauge-wrap{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;}
+  .gauge{position:relative;width:200px;height:120px;}
+  .gauge svg{width:100%;height:100%;}
+  .gauge-num{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);text-align:center;}
+  .gauge-num .n{font-family:var(--mono);font-weight:700;font-size:42px;color:var(--text);line-height:1;}
+  .gauge-num .max{font-family:var(--mono);font-size:11px;color:var(--text-3);}
+  .gauge-band{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--red);margin-top:6px;text-transform:uppercase;}
+  .gauge-side .gs-title{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--text);line-height:1.1;}
+  .gauge-side .gs-sub{font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.5;}
+  .gauge-side .gs-meta{margin-top:14px;display:flex;gap:18px;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.8px;text-transform:uppercase;}
+  .gauge-side .gs-meta b{color:var(--text);font-weight:500;}
+  .kpi{padding:14px;border:1px solid var(--line);background:linear-gradient(180deg, #0c0e14, #0a0c11);border-radius:2px;}
+  .kpi .k-label{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;}
+  .kpi .k-val{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--text);margin-top:6px;letter-spacing:-.5px;}
+  .kpi .k-sub{font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:4px;}
+  .kpi .k-sub.dn{color:var(--red);}
+  .kpi .k-sub.up{color:var(--green);}
+  .chart-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .chart-head .ch-title{font-family:var(--serif);font-size:18px;font-weight:600;}
+  .chart-head .ch-meta{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  svg.price-chart{width:100%;height:280px;display:block;}
+  .chart-legend{display:flex;gap:18px;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;flex-wrap:wrap;}
+  .chart-legend .lg{display:flex;align-items:center;gap:6px;}
+  .chart-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .section-head{display:flex;align-items:center;gap:16px;margin:34px 0 14px;}
+  .section-head h2{font-family:var(--serif);font-weight:600;font-size:20px;letter-spacing:-.3px;}
+  .section-head .sh-rule{flex:1;height:1px;background:linear-gradient(90deg, var(--line-2), transparent);}
+  .section-head .sh-tag{font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;}
+  .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  @media (max-width:780px){.card-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:540px){.card-grid{grid-template-columns:1fr;}}
+  .mcard{background:var(--bg-3);border:1px solid var(--line);border-left:3px solid var(--line-2);padding:14px 14px 16px;border-radius:2px;}
+  .mcard.green{border-left-color:var(--green);background:linear-gradient(180deg, #0c1612 0%, var(--bg-3) 100%);}
+  .mcard.red{border-left-color:var(--red);background:linear-gradient(180deg, #16100f 0%, var(--bg-3) 100%);}
+  .mcard.amber{border-left-color:var(--amber);background:linear-gradient(180deg, #161108 0%, var(--bg-3) 100%);}
+  .mc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .mc-name{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .mc-flag{font-family:var(--mono);font-size:9px;font-weight:600;padding:2px 6px;border-radius:1px;letter-spacing:1px;}
+  .mc-flag.green{background:var(--green-soft);color:var(--green);}
+  .mc-flag.red{background:var(--red-soft);color:var(--red);}
+  .mc-flag.amber{background:var(--amber-soft);color:var(--amber);}
+  .mc-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);margin-top:8px;letter-spacing:-.5px;}
+  .mc-bench{font-family:var(--mono);font-size:10.5px;color:var(--text-2);margin-top:3px;}
+  .mc-note{font-size:11.5px;color:var(--text-2);line-height:1.5;margin-top:8px;}
+  .breakdown{margin-top:20px;}
+  .bd-row{display:grid;grid-template-columns:120px 1fr 60px 50px;gap:14px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);}
+  .bd-row:last-child{border-bottom:none;}
+  .bd-label{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-2);}
+  .bd-bar{height:8px;background:var(--line);border-radius:1px;overflow:hidden;}
+  .bd-bar > div{height:100%;border-radius:1px;}
+  .bd-bar.high > div{background:linear-gradient(90deg, var(--red), #ff8a5b);}
+  .bd-bar.mid > div{background:linear-gradient(90deg, var(--amber), #ffd685);}
+  .bd-bar.low > div{background:linear-gradient(90deg, var(--green), #8be9c4);}
+  .bd-score{font-family:var(--mono);font-size:13px;font-weight:600;text-align:right;color:var(--text);}
+  .bd-weight{font-family:var(--mono);font-size:10px;color:var(--text-3);text-align:right;letter-spacing:1px;}
+  .page-no{position:absolute;top:10px;right:14px;font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:2px;}
+  .qtable{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;}
+  .qtable th,.qtable td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);}
+  .qtable th:first-child,.qtable td:first-child{text-align:left;}
+  .qtable th{font-size:9.5px;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;font-weight:500;background:#0a0c11;border-bottom:1px solid var(--line-2);}
+  .qtable td{color:var(--text-2);}
+  .qtable td:first-child{color:var(--text);font-weight:500;}
+  .qtable .pos{color:var(--green);}
+  .qtable .neg{color:var(--red);}
+  .qtable tr.latest td{background:#0d1118;color:var(--text);font-weight:600;}
+  .qtable tr.latest td:first-child{color:var(--red);}
+  .earn-card{background:linear-gradient(135deg, #0e1219 0%, var(--bg-3) 100%);border:1px solid var(--line);padding:20px;border-radius:2px;}
+  .earn-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
+  .earn-head h3{font-family:var(--serif);font-size:18px;font-weight:600;}
+  .earn-head .tag{font-family:var(--mono);font-size:9px;color:var(--red);letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--red);padding:2px 6px;}
+  .earn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;}
+  .eg-lbl{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .eg-val{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--text);margin-top:4px;}
+  .eg-sub{font-family:var(--mono);font-size:10px;margin-top:2px;}
+  .earn-body{font-size:12.5px;color:var(--text-2);line-height:1.6;border-top:1px dashed var(--line);padding-top:12px;}
+  .earn-body b{color:var(--text);font-weight:500;}
+  .dual{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:780px){.dual{grid-template-columns:1fr;}}
+  .col-cat,.col-risk{padding:18px;border:1px solid var(--line);border-radius:2px;}
+  .col-cat{background:linear-gradient(180deg, #0c1612 0%, var(--bg-3) 100%);border-top:2px solid var(--green);}
+  .col-risk{background:linear-gradient(180deg, #16100f 0%, var(--bg-3) 100%);border-top:2px solid var(--red);}
+  .col-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
+  .col-head h3{font-family:var(--serif);font-size:17px;font-weight:600;}
+  .col-cat .col-head h3{color:var(--green);}
+  .col-risk .col-head h3{color:var(--red);}
+  .col-head .ct{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.5px;}
+  .pt{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);}
+  .pt:last-child{border-bottom:none;}
+  .pt .pt-n{font-family:var(--mono);font-size:10px;color:var(--text-3);}
+  .pt .pt-t{font-size:12.5px;color:var(--text-2);line-height:1.5;}
+  .pt .pt-t b{color:var(--text);font-weight:500;}
+  .expert-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  @media (max-width:780px){.expert-grid{grid-template-columns:repeat(2,1fr);}}
+  .ex{border:1px solid var(--line);padding:12px;background:var(--bg-3);border-radius:2px;border-top:2px solid var(--text-3);}
+  .ex.buy{border-top-color:var(--green);}
+  .ex.sell{border-top-color:var(--red);}
+  .ex.hold{border-top-color:var(--amber);}
+  .ex-broker{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  .ex-call{font-family:var(--mono);font-size:11px;font-weight:600;margin-top:6px;letter-spacing:1.5px;}
+  .ex.buy .ex-call{color:var(--green);}
+  .ex.sell .ex-call{color:var(--red);}
+  .ex.hold .ex-call{color:var(--amber);}
+  .ex-tp{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:6px;letter-spacing:-.3px;}
+  .ex-up{font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:2px;}
+  .ind{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:780px){.ind{grid-template-columns:1fr;}}
+  .ind-block{padding:16px;border:1px solid var(--line);background:var(--bg-3);border-radius:2px;}
+  .ind-block h4{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:10px;}
+  .ind-row{display:flex;justify-content:space-between;padding:7px 0;font-family:var(--mono);font-size:11px;border-bottom:1px dashed var(--line);}
+  .ind-row:last-child{border-bottom:none;}
+  .ind-row .l{color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  .ind-row .v{color:var(--text);font-weight:600;}
+  .verdict{margin-top:24px;background:linear-gradient(135deg, #0e1219 0%, #0a0c11 100%);border:1px solid var(--line);border-radius:2px;padding:24px;position:relative;overflow:hidden;}
+  .verdict::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 200px at 100% 0%, rgba(255,84,112,.06), transparent 60%);pointer-events:none;}
+  .verdict-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;position:relative;}
+  .verdict-head h3{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.3px;}
+  .verdict-head .vh-tag{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--red);text-transform:uppercase;border:1px solid var(--red);padding:3px 8px;}
+  .rating-bar{margin:14px 0 16px;position:relative;}
+  .rb-track{height:32px;background:linear-gradient(90deg, var(--red) 0%, #ff8a5b 25%, var(--amber) 50%, #8be9c4 75%, var(--green) 100%);border-radius:2px;position:relative;}
+  .rb-marker{position:absolute;top:-6px;bottom:-6px;width:3px;background:var(--text);box-shadow:0 0 0 2px var(--bg);}
+  .rb-marker::after{content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border:6px solid transparent;border-top-color:var(--text);}
+  .rb-labels{display:flex;justify-content:space-between;margin-top:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;}
+  .verdict-text{font-size:13.5px;color:var(--text-2);line-height:1.65;}
+  .verdict-text b{color:var(--text);font-weight:500;}
+  .verdict-text .tag{display:inline-block;padding:1px 6px;font-family:var(--mono);font-size:10px;letter-spacing:1px;background:var(--red-soft);color:var(--red);border-radius:1px;margin:0 2px;}
+  .actions{margin-top:24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:18px;border-top:1px solid var(--line);}
+  .disclaim{font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:.8px;line-height:1.6;max-width:780px;}
+  .copy-btn{background:transparent;color:var(--red);border:1px solid var(--red);font-family:var(--mono);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;padding:10px 18px;cursor:pointer;border-radius:2px;transition:all .2s;}
+  .copy-btn:hover{background:var(--red);color:var(--bg);}
+  .copy-btn.copied{background:var(--green);color:var(--bg);border-color:var(--green);}
+  .micro{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<section class="page">
+  <span class="page-no">PG 01 / 02</span>
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="ticker-block">
+        <span class="ticker">JAINREC</span>
+        <span class="exchange">NSE &bull; 544537</span>
+      </div>
+      <span class="company">Jain Resource Recycling Ltd &middot; Non-Ferrous Metal Recycling</span>
+    </div>
+    <div class="price-block">
+      <span class="ltp">&#8377;383.60</span>
+      <span class="chg dn">&minus;33% in 2 days</span>
+    </div>
+  </div>
+  <div class="topbar" style="border-top:0;border-bottom:1px solid var(--line);padding-top:8px;padding-bottom:8px;">
+    <div class="meta">
+      <span>SECTOR <b>METALS &amp; MINING</b></span>
+      <span>SUB-SECTOR <b>RECYCLING</b></span>
+      <span>ISIN <b>INE0YD401026</b></span>
+      <span>LISTED <b>OCT 2025 &middot; IPO</b></span>
+    </div>
+    <div class="meta">
+      <span>AS OF <b>21-MAY-2026</b></span>
+    </div>
+  </div>
+
+  <div class="report-head">
+    <div>
+      <div class="report-title">Equity Risk &amp; Quality Report <em>&mdash; Post Q4FY26 Crash</em></div>
+      <p class="report-sub">Independent forensic assessment of Jain Resource Recycling following the May 2026 Q4 print and 33% two-day stock crash. Focus: post-IPO unit economics deterioration, working capital stretch, and whether the bull thesis (copper recycling tailwind) survives the data.</p>
+    </div>
+    <div class="stamp">
+      <div>Report ID &middot; <b>JAINREC &middot; RR-2105-FY26</b></div>
+      <div>Analyst &middot; <b>Harshit Gandhi</b></div>
+      <div>Coverage &middot; <b>Initiating</b></div>
+      <div>Currency &middot; <b>INR &#8377; (Cr unless stated)</b></div>
+    </div>
+  </div>
+
+  <div class="page-inner">
+    <div class="row two" style="margin-bottom:20px;">
+      <div class="panel">
+        <div class="panel-label">
+          <span>Composite Risk Score</span>
+          <span class="pl-tag">SCALE 0 &rarr; 100 (HIGHER = RISKIER)</span>
+        </div>
+        <div class="gauge-wrap">
+          <div class="gauge">
+            <svg viewBox="0 0 200 120">
+              <path d="M 20 110 A 80 80 0 0 1 60 41.2" stroke="#1a3a2a" stroke-width="14" fill="none"/>
+              <path d="M 60 41.2 A 80 80 0 0 1 100 30" stroke="#2a3a1a" stroke-width="14" fill="none"/>
+              <path d="M 100 30 A 80 80 0 0 1 140 41.2" stroke="#3a2e10" stroke-width="14" fill="none"/>
+              <path d="M 140 41.2 A 80 80 0 0 1 180 110" stroke="#3a1418" stroke-width="14" fill="none"/>
+              <path d="M 20 110 A 80 80 0 0 1 145.8 43.8" stroke="url(#gg)" stroke-width="14" fill="none" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="gg" x1="0" x2="1"><stop offset="0" stop-color="#3ddc97"/><stop offset=".55" stop-color="#ffb547"/><stop offset="1" stop-color="#ff5470"/></linearGradient>
+              </defs>
+              <line x1="100" y1="110" x2="145.8" y2="43.8" stroke="#e6e8ee" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="100" cy="110" r="6" fill="#08090d" stroke="#e6e8ee" stroke-width="2"/>
+              <text x="14" y="118" font-family="JetBrains Mono" font-size="8" fill="#5a6071">0</text>
+              <text x="92" y="22" font-family="JetBrains Mono" font-size="8" fill="#5a6071">50</text>
+              <text x="178" y="118" font-family="JetBrains Mono" font-size="8" fill="#5a6071">100</text>
+            </svg>
+            <div class="gauge-num">
+              <div class="n">68</div>
+              <div class="max">/ 100</div>
+              <div class="gauge-band">&#9660; HIGH</div>
+            </div>
+          </div>
+          <div class="gauge-side">
+            <div class="gs-title">Post-IPO Unit Economics Eroding</div>
+            <div class="gs-sub">Industry tailwind is real (copper recycling demand), but FY26 print shows working capital cycle blowing out (45 to 90+ days) and copper EBITDA/ton falling from &#8377;51k to &#8377;42k. Stock collapsed 33% in two days post-results &mdash; the market priced in the deterioration.</div>
+            <div class="gs-meta">
+              <span>VAL. RISK <b style="color:var(--red);">75</b></span>
+              <span>BAL-SHEET <b style="color:var(--red);">72</b></span>
+              <span>GROWTH <b style="color:var(--amber);">55</b></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-label">
+          <span>Snapshot &middot; Key Metrics</span>
+          <span class="pl-tag">CONSOLIDATED &middot; TTM</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+          <div class="kpi"><div class="k-label">Market Cap</div><div class="k-val">&#8377;13,486 Cr</div><div class="k-sub">Smallcap &middot; ~US$1.6B</div></div>
+          <div class="kpi"><div class="k-label">P/E (TTM)</div><div class="k-val">38.8&times;</div><div class="k-sub dn">Was 87&times; pre-crash</div></div>
+          <div class="kpi"><div class="k-label">P/B</div><div class="k-val">9.0&times;</div><div class="k-sub dn">Stretched</div></div>
+          <div class="kpi"><div class="k-label">FY26 Revenue</div><div class="k-val">&#8377;9,543 Cr</div><div class="k-sub up">+48% YoY</div></div>
+          <div class="kpi"><div class="k-label">52W Range</div><div class="k-val">&#8377;247&ndash;594</div><div class="k-sub dn">35% off high</div></div>
+          <div class="kpi"><div class="k-label">From IPO</div><div class="k-val" style="color:var(--green);">+65%</div><div class="k-sub">IPO @ &#8377;232</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="chart-head">
+        <div class="ch-title">Price Trajectory <span style="font-family:var(--mono);font-weight:400;font-size:11px;color:var(--text-3);letter-spacing:1px;">&middot; OCT 2025 &rarr; MAY 2026 (POST-IPO)</span></div>
+        <div class="ch-meta">CLOSE &middot; NSE &middot; EOD</div>
+      </div>
+      <svg class="price-chart" viewBox="0 0 1200 280" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="ag" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ff5470" stop-opacity=".22"/><stop offset="1" stop-color="#ff5470" stop-opacity="0"/></linearGradient>
+        </defs>
+        <g stroke="#1d212c" stroke-width="1" stroke-dasharray="2,4">
+          <line x1="0" y1="40" x2="1200" y2="40"/><line x1="0" y1="90" x2="1200" y2="90"/><line x1="0" y1="140" x2="1200" y2="140"/><line x1="0" y1="190" x2="1200" y2="190"/><line x1="0" y1="240" x2="1200" y2="240"/>
+        </g>
+        <g font-family="JetBrains Mono" font-size="9" fill="#5a6071">
+          <text x="6" y="44">600</text><text x="6" y="94">510</text><text x="6" y="144">420</text><text x="6" y="194">330</text><text x="6" y="244">240</text>
+        </g>
+        <g font-family="JetBrains Mono" font-size="9" fill="#5a6071" text-anchor="middle">
+          <text x="100" y="262">OCT'25</text><text x="280" y="262">NOV</text><text x="430" y="262">DEC</text><text x="570" y="262">JAN'26</text><text x="710" y="262">FEB</text><text x="830" y="262">MAR</text><text x="950" y="262">APR</text><text x="1100" y="262">MAY</text>
+        </g>
+        <!-- IPO at 265 (listing), 388 (Oct high), then 460 (52W high Nov), 408 (Jan), 363 (Feb-Mar), 247 (52W low Oct dip), 569 (mid May pre-results), 383 (post crash) -->
+        <!-- Y formula: y = 240 - ((price-240)/360)*200 -->
+        <!-- 265: 226; 388: 158; 460: 118; 408: 147; 460: 118; 565: 60; 569: 58; 383: 161 -->
+        <path d="M 100 226 L 250 158 L 350 118 L 500 147 L 650 158 L 800 175 L 950 60 L 1050 58 L 1100 161 L 1100 240 L 100 240 Z" fill="url(#ag)"/>
+        <polyline points="100,226 250,158 350,118 500,147 650,158 800,175 950,60 1050,58 1100,161" fill="none" stroke="#ff5470" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+        <g><circle cx="100" cy="226" r="5" fill="#7cc1ff" stroke="#08090d" stroke-width="2"/><text x="100" y="216" font-family="JetBrains Mono" font-size="9" fill="#7cc1ff" text-anchor="middle">IPO LISTING @ &#8377;265</text></g>
+        <g><circle cx="350" cy="118" r="5" fill="#ffb547" stroke="#08090d" stroke-width="2"/><text x="350" y="108" font-family="JetBrains Mono" font-size="9" fill="#ffb547" text-anchor="middle">FIRST RUN-UP</text></g>
+        <g><circle cx="1050" cy="58" r="5" fill="#3ddc97" stroke="#08090d" stroke-width="2"/><text x="1050" y="46" font-family="JetBrains Mono" font-size="9" fill="#3ddc97" text-anchor="middle">52W HIGH &#8377;594</text></g>
+        <g><circle cx="1100" cy="161" r="5" fill="#ff5470" stroke="#08090d" stroke-width="2"/><line x1="1100" y1="161" x2="1100" y2="195" stroke="#ff5470" stroke-width="1" stroke-dasharray="2,2"/><text x="1100" y="208" font-family="JetBrains Mono" font-size="9" fill="#ff5470" text-anchor="middle">Q4 CRASH &minus;33%</text></g>
+      </svg>
+      <div class="chart-legend">
+        <span class="lg"><span class="dot" style="background:#ff5470;"></span>JAINREC &middot; CLOSE</span>
+        <span class="lg"><span class="dot" style="background:#3ddc97;"></span>52W HIGH</span>
+        <span class="lg"><span class="dot" style="background:#ff5470;"></span>POST-Q4 CRASH</span>
+        <span class="lg"><span class="dot" style="background:#7cc1ff;"></span>IPO EVENT</span>
+      </div>
+    </div>
+
+    <div class="section-head"><h2>Valuation</h2><div class="sh-rule"></div><span class="sh-tag">06 METRICS</span></div>
+    <div class="card-grid">
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">P/E (TTM)</span><span class="mc-flag red">MISS</span></div><div class="mc-val">38.8&times;</div><div class="mc-bench">Sector median: 18&times; &middot; Hindalco: 14&times;</div><div class="mc-note">Even after the crash, P/E is 2x the metal recycling peer median. Pre-crash it was 87&times; &mdash; truly excessive.</div></div>
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">P/B</span><span class="mc-flag red">MISS</span></div><div class="mc-val">9.0&times;</div><div class="mc-bench">Sector median: 1.8&times;</div><div class="mc-note">Wildly stretched. Book value ~&#8377;43/share. Even at fair-value 3&times; book, intrinsic is ~&#8377;130.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">EV / EBITDA</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">~22&times;</div><div class="mc-bench">Sector median: 11&times;</div><div class="mc-note">Justified only if EBITDA/ton stabilises. Current trajectory is the opposite &mdash; declining.</div></div>
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">PEG (FWD)</span><span class="mc-flag red">MISS</span></div><div class="mc-val">~2.1&times;</div><div class="mc-bench">Comfort zone: &lt;1.5&times;</div><div class="mc-note">After MOSL FY27/28 EPS cuts of 15&ndash;16%, the PEG re-rates higher. No margin of safety.</div></div>
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">Dividend Yield</span><span class="mc-flag red">MISS</span></div><div class="mc-val">0.00%</div><div class="mc-bench">No dividend declared FY26</div><div class="mc-note">Cash being absorbed by working capital expansion and new copper furnace commissioning.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">Mcap / Sales</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">1.41&times;</div><div class="mc-bench">Sector median: 0.9&times;</div><div class="mc-note">Reasonable on sales but only because EBITDA margins (7.5%) are thin. Quality of revenue matters.</div></div>
+    </div>
+
+    <div class="section-head"><h2>Financial Health</h2><div class="sh-rule"></div><span class="sh-tag">06 METRICS</span></div>
+    <div class="card-grid">
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">Debt / Equity</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">~0.85&times;</div><div class="mc-bench">Pre-IPO: 1.4&times; &middot; reduced via IPO proceeds</div><div class="mc-note">IPO money went into debt paydown &mdash; but working capital expansion has consumed much of the buffer.</div></div>
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">Working Capital Days</span><span class="mc-flag red">MISS</span></div><div class="mc-val">~90 days</div><div class="mc-bench">Pre-IPO: 45&ndash;50 days &middot; doubled</div><div class="mc-note"><b>Critical forensic flag.</b> Working capital cycle nearly doubled in 6 months. Cash conversion deteriorating.</div></div>
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">EBITDA/Ton (Cu)</span><span class="mc-flag red">MISS</span></div><div class="mc-val">&#8377;42,000</div><div class="mc-bench">Pre-IPO: &#8377;51,000 &middot; &minus;18%</div><div class="mc-note">Copper unit economics deteriorating. EBITDA growth coming from volume, not pricing power.</div></div>
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Promoter Holding</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">73.6%</div><div class="mc-bench">Was 79.8% pre-IPO &middot; OFS dilution</div><div class="mc-note">High promoter stake = skin in game. But lock-in expires Sep 2026 &mdash; potential supply overhang.</div></div>
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">FII Holding</span><span class="mc-flag red">MISS</span></div><div class="mc-val">3.0%</div><div class="mc-bench">DII 10.1% &middot; Retail 13.3%</div><div class="mc-note">Very low FII confidence. Institutional anchor weak for a Smallcap of this size.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">ROE</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">~16%</div><div class="mc-bench">Sector median: 11% &middot; declining QoQ</div><div class="mc-note">Better than peers but trending down as working capital expansion drags asset turnover.</div></div>
+    </div>
+
+    <div class="section-head"><h2>Growth</h2><div class="sh-rule"></div><span class="sh-tag">06 METRICS</span></div>
+    <div class="card-grid">
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Revenue YoY</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">+48%</div><div class="mc-bench">FY26: &#8377;9,543 Cr &middot; FY25: &#8377;7,162 Cr</div><div class="mc-note">Real top-line expansion. Volume-led, mix shift to copper aiding revenue scale.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">EBITDA YoY</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">+20%</div><div class="mc-bench">Lagging revenue by ~28 pp &middot; margin compression</div><div class="mc-note">EBITDA growth far behind revenue growth = unit economics deterioration. Critical concern.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">PAT YoY (Q4)</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">+22%</div><div class="mc-bench">Q4 PAT &#8377;66 Cr vs &#8377;54 Cr LY</div><div class="mc-note">Growth real but well below Street expectations &mdash; triggered the post-results sell-off.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">EBITDA Margin</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">7.5%</div><div class="mc-bench">Q2FY26: 7.6% &middot; flat</div><div class="mc-note">Margin not expanding despite scale. Either competitive pressure or input cost squeeze.</div></div>
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Capex Visibility</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">First Cu furnace live</div><div class="mc-bench">Plastic recycling plant FY27 &middot; &#8377;15 Cr</div><div class="mc-note">Capacity expansion on track. FY27 ramp is the next earnings driver.</div></div>
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">Track Record</span><span class="mc-flag red">MISS</span></div><div class="mc-val">7 months listed</div><div class="mc-bench">Limited public history</div><div class="mc-note">Only 2 quarters of post-IPO data. No history of weathering a metal price downcycle as public.</div></div>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <div class="panel-label"><span>Score Breakdown</span><span class="pl-tag">VAL 35 / HEALTH 35 / GROWTH 30</span></div>
+      <div class="breakdown">
+        <div class="bd-row"><div class="bd-label">Valuation</div><div class="bd-bar high"><div style="width:75%"></div></div><div class="bd-score">75</div><div class="bd-weight">&times;0.35</div></div>
+        <div class="bd-row"><div class="bd-label">Fin. Health</div><div class="bd-bar high"><div style="width:72%"></div></div><div class="bd-score">72</div><div class="bd-weight">&times;0.35</div></div>
+        <div class="bd-row"><div class="bd-label">Growth</div><div class="bd-bar mid"><div style="width:55%"></div></div><div class="bd-score">55</div><div class="bd-weight">&times;0.30</div></div>
+        <div class="bd-row" style="border-top:1px solid var(--line-2);padding-top:14px;border-bottom:none;"><div class="bd-label" style="color:var(--red);">COMPOSITE</div><div class="bd-bar"><div style="width:68%;background:linear-gradient(90deg,var(--accent),var(--red));"></div></div><div class="bd-score" style="color:var(--red);font-size:16px;">68</div><div class="bd-weight">/ 100</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page">
+  <span class="page-no">PG 02 / 02</span>
+  <div class="report-head">
+    <div>
+      <div class="report-title">Operating Detail <em>&amp; Verdict</em></div>
+      <p class="report-sub">Quarterly trajectory, Q4FY26 print analysis, dual-column thesis, sell-side positioning, and the bottom-line call with explicit risk controls.</p>
+    </div>
+    <div class="stamp">
+      <div>JAINREC &middot; <b>NSE 544537</b></div>
+      <div>CMP &middot; <b>&#8377;383.60</b></div>
+      <div>RISK SCORE &middot; <b style="color:var(--red);">68 / 100</b></div>
+      <div>CALL &middot; <b style="color:var(--red);">AVOID / WAIT</b></div>
+    </div>
+  </div>
+
+  <div class="page-inner">
+    <div class="panel">
+      <div class="panel-label"><span>Quarterly Trend &middot; Consolidated</span><span class="pl-tag">POST-IPO QUARTERS &middot; &#8377; Cr</span></div>
+      <table class="qtable">
+        <thead><tr><th>Quarter</th><th>Revenue</th><th>EBITDA</th><th>EBITDA %</th><th>PAT</th><th>EPS (&#8377;)</th><th>YoY PAT</th></tr></thead>
+        <tbody>
+          <tr><td>Q1FY26 &middot; Jun'25</td><td>1,795</td><td>118</td><td>6.6%</td><td>47.8</td><td>1.65</td><td class="pos">+62%</td></tr>
+          <tr><td>Q2FY26 &middot; Sep'25</td><td>2,114</td><td>160</td><td>7.6%</td><td>98.6</td><td>3.41</td><td class="pos">+88%</td></tr>
+          <tr><td>Q3FY26 &middot; Dec'25</td><td>2,775</td><td>208</td><td>7.5%</td><td>106</td><td>3.66</td><td class="pos">+47%</td></tr>
+          <tr class="latest"><td>Q4FY26 &middot; Mar'26</td><td>2,859</td><td>214</td><td>7.5%</td><td>66</td><td>1.94</td><td class="pos">+22%*</td></tr>
+        </tbody>
+      </table>
+      <div class="micro" style="margin-top:10px;color:var(--text-3);">*Q4 PAT &#8377;66 Cr (&#8377;660 million) &mdash; missed Street expectations. Stock crashed 33% in 2 trading sessions (May 18-19, 2026).</div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <div class="earn-card">
+        <div class="earn-head"><h3>Q4FY26 / FY26 Earnings &middot; 18-May-2026</h3><span class="tag">PRINT BELOW EXPECTATIONS</span></div>
+        <div class="earn-grid">
+          <div><div class="eg-lbl">FY26 Revenue</div><div class="eg-val">&#8377;9,543 Cr</div><div class="eg-sub" style="color:var(--green);">+48% YoY</div></div>
+          <div><div class="eg-lbl">FY26 EBITDA</div><div class="eg-val">&#8377;700 Cr</div><div class="eg-sub" style="color:var(--amber);">~7.3% margin</div></div>
+          <div><div class="eg-lbl">FY26 PAT</div><div class="eg-val">&#8377;318 Cr</div><div class="eg-sub" style="color:var(--green);">+42% YoY</div></div>
+          <div><div class="eg-lbl">Q4 PAT</div><div class="eg-val">&#8377;66 Cr</div><div class="eg-sub" style="color:var(--red);">Missed estimates</div></div>
+        </div>
+        <div class="earn-body">
+          <b>Print quality:</b> Headline revenue growth was strong (+48% YoY), but the bottom-line missed Street estimates significantly. The market reaction tells the story &mdash; stock fell 18.5% on Day 1, another 15% on Day 2.
+          <br><br>
+          <b>What broke:</b> (1) <b>Working capital cycle blew out</b> from 45-50 days pre-IPO to ~90 days, indicating receivables stretch or inventory buildup; (2) <b>Copper EBITDA/ton fell from &#8377;51,000 to &#8377;42,000</b> &mdash; a ~18% decline in unit economics; (3) Q4 PAT growth (+22%) lagged revenue growth (+48%) significantly.
+          <br><br>
+          <b>Management commentary:</b> First copper furnace commissioned. Plastic recycling plant (&#8377;15 Cr) coming Q3FY27. International Conveyors acquired 87,105 shares on May 11 (&#8377;5 Cr). MOSL cut FY27/FY28 EPS by 15%/16% but maintained BUY with TP &#8377;560 (27&times; FY28 EPS).
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head"><h2>Thesis &middot; Catalysts vs Risks</h2><div class="sh-rule"></div><span class="sh-tag">DUAL COLUMN</span></div>
+    <div class="dual">
+      <div class="col-cat">
+        <div class="col-head"><h3>&#9650; Catalysts</h3><span class="ct">BULL CASE</span></div>
+        <div class="pt"><span class="pt-n">01</span><span class="pt-t"><b>Structural industry tailwind.</b> India non-ferrous recycling CAGR 13-18% to FY30. Govt push on import substitution.</span></div>
+        <div class="pt"><span class="pt-n">02</span><span class="pt-t"><b>First copper furnace operational.</b> Capacity expansion in highest-margin segment. FY27 ramp visibility.</span></div>
+        <div class="pt"><span class="pt-n">03</span><span class="pt-t"><b>High export mix (60%+).</b> Marquee clients: Vedanta-Sterlite, Luminous, Mitsubishi. Lead brand LME-registered.</span></div>
+        <div class="pt"><span class="pt-n">04</span><span class="pt-t"><b>Promoter alignment.</b> 73.6% promoter holding signals long-term commitment (though lock-in expires Sep 2026).</span></div>
+        <div class="pt"><span class="pt-n">05</span><span class="pt-t"><b>IPO money deployed.</b> Debt paydown reduces leverage from 1.4&times; to 0.85&times; D/E.</span></div>
+        <div class="pt"><span class="pt-n">06</span><span class="pt-t"><b>Forensic-clean balance sheet.</b> No related party concerns, no governance flags at IPO.</span></div>
+      </div>
+      <div class="col-risk">
+        <div class="col-head"><h3>&#9660; Risks</h3><span class="ct">BEAR CASE</span></div>
+        <div class="pt"><span class="pt-n">01</span><span class="pt-t"><b>Working capital cycle doubling.</b> 45 to 90 days in 6 months. Cash conversion deteriorating sharply.</span></div>
+        <div class="pt"><span class="pt-n">02</span><span class="pt-t"><b>EBITDA/ton compression.</b> Copper unit economics down 18%. Volume-led growth, not pricing power.</span></div>
+        <div class="pt"><span class="pt-n">03</span><span class="pt-t"><b>Lock-in expiry Sep 2026.</b> Promoter and pre-IPO investor lock-ins will release supply. Overhang risk.</span></div>
+        <div class="pt"><span class="pt-n">04</span><span class="pt-t"><b>Limited public track record.</b> Only 4 quarters as listed. No history of weathering metal cycles.</span></div>
+        <div class="pt"><span class="pt-n">05</span><span class="pt-t"><b>Commodity exposure.</b> Copper, lead, aluminium prices drive margin &mdash; LME volatility = quarterly earnings volatility.</span></div>
+        <div class="pt"><span class="pt-n">06</span><span class="pt-t"><b>FII confidence low.</b> 3% FII holding for a &#8377;13,500 Cr company is exceptionally weak. Institutional anchor thin.</span></div>
+        <div class="pt"><span class="pt-n">07</span><span class="pt-t"><b>Falling-knife dynamics.</b> 33% in 2 days post-results suggests information asymmetry or programmatic selling.</span></div>
+      </div>
+    </div>
+
+    <div class="section-head"><h2>Street View</h2><div class="sh-rule"></div><span class="sh-tag">LIMITED COVERAGE &middot; POST-IPO</span></div>
+    <div class="expert-grid">
+      <div class="ex buy"><div class="ex-broker">Motilal Oswal</div><div class="ex-call">BUY</div><div class="ex-tp">&#8377;560</div><div class="ex-up">Upside +46% &middot; FY27/28 EPS cut 15/16%</div></div>
+      <div class="ex hold"><div class="ex-broker">Univest Consensus</div><div class="ex-call">HOLD</div><div class="ex-tp">&#8377;420</div><div class="ex-up">Upside +9.5%</div></div>
+      <div class="ex sell"><div class="ex-broker">Desk Bear Case</div><div class="ex-call">SELL</div><div class="ex-tp">&#8377;230</div><div class="ex-up">Downside &minus;40% &middot; reverts to IPO price</div></div>
+      <div class="ex hold"><div class="ex-broker">Desk Fair Value</div><div class="ex-call">WAIT</div><div class="ex-tp">&#8377;280</div><div class="ex-up">Entry zone post lock-in expiry</div></div>
+    </div>
+
+    <div class="section-head"><h2>Industry Context</h2><div class="sh-rule"></div><span class="sh-tag">RECYCLING SECTOR</span></div>
+    <div class="ind">
+      <div class="ind-block">
+        <h4>India Non-Ferrous Recycling</h4>
+        <div class="ind-row"><span class="l">Market Size FY26</span><span class="v">~US$ 10 Bn</span></div>
+        <div class="ind-row"><span class="l">Projected FY30</span><span class="v">~US$ 17 Bn</span></div>
+        <div class="ind-row"><span class="l">CAGR (FY26&ndash;30)</span><span class="v" style="color:var(--green);">14&ndash;16%</span></div>
+        <div class="ind-row"><span class="l">JAINREC share (India)</span><span class="v">~10&ndash;12%</span></div>
+        <div class="ind-row"><span class="l">JAINREC rank</span><span class="v">Top 3 lead recycler</span></div>
+      </div>
+      <div class="ind-block">
+        <h4>Key Peer Set</h4>
+        <div class="ind-row"><span class="l">Gravita India</span><span class="v">Mcap &#8377;15,400 Cr</span></div>
+        <div class="ind-row"><span class="l">Hindalco Industries</span><span class="v">Mcap &#8377;1.7 lakh Cr</span></div>
+        <div class="ind-row"><span class="l">Pondy Oxides</span><span class="v">Mcap &#8377;1,200 Cr</span></div>
+        <div class="ind-row"><span class="l">Sector P/E median</span><span class="v">18&times;</span></div>
+        <div class="ind-row"><span class="l">JAINREC premium</span><span class="v" style="color:var(--red);">+115%</span></div>
+      </div>
+    </div>
+
+    <div class="verdict">
+      <div class="verdict-head"><h3>Bottom Line</h3><span class="vh-tag">FINAL CALL</span></div>
+      <div class="rating-bar">
+        <div class="rb-track"><div class="rb-marker" style="left:22%;"></div></div>
+        <div class="rb-labels"><span>STRONG SELL</span><span>SELL</span><span>HOLD</span><span>ACCUMULATE</span><span>STRONG BUY</span></div>
+      </div>
+      <div class="verdict-text">
+        <b>Rating: AVOID / WAIT. Entry zone &#8377;250&ndash;280 post lock-in expiry (Sep 2026).</b>
+        <br><br>
+        The bull case (copper recycling tailwind, capacity expansion, debt-light balance sheet post-IPO) is real but already priced in twice over at current levels. The bear case (working capital blow-up, EBITDA/ton compression, lock-in supply overhang) is what the market just woke up to &mdash; and the 33% two-day crash suggests there's more selling to come once the lock-in releases.
+        <br><br>
+        <b>What I'm pushing back on:</b> MOSL's &#8377;560 TP rests on 27&times; FY28 EPS &mdash; that's still premium to peers and bakes in margin recovery that the recent quarters do not show. If EBITDA/ton continues falling and working capital doesn't normalise by Q2FY27, MOSL will cut again.
+        <br><br>
+        <span class="tag">WC CYCLE 2&times;</span><span class="tag">EBITDA/TON &minus;18%</span><span class="tag">LOCK-IN SEP 2026</span><span class="tag">FII 3%</span>
+        <br><br>
+        <b>Tactical:</b> Fresh buyers &rarr; <span class="tag">WAIT</span>. Don't catch the falling knife. Existing holders (IPO allottees) &rarr; consider trimming 30&ndash;40% above &#8377;420 if/when a relief rally arrives. <b>Hard stop &#8377;310</b> (below the post-crash low). <b>Re-rate to ACCUMULATE only after</b>: (1) working capital normalises to 60 days or lower, (2) two quarters of EBITDA/ton stabilisation, (3) post lock-in supply absorbed cleanly.
+        <br><br>
+        <b>Position cap:</b> 1&ndash;1.5% of equity book even on re-entry. This is a commodity recycler &mdash; cyclical, leveraged to LME, with limited public track record. Treat accordingly.
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="disclaim"><b>Disclaimer:</b> Educational analysis only. Author Harshit Gandhi is NOT a SEBI-registered Investment Adviser or Research Analyst. This is not investment advice. Data from BSE/NSE filings, MOSL research, company disclosures as of 22-May-2026. Investing involves risk of capital loss. Consult a SEBI-registered adviser before acting.</div>
+      <button class="copy-btn" id="copyBtn" onclick="copyReport()">&#8901; Copy Summary</button>
+    </div>
+  </div>
+</section>
+
+<script>
+function copyReport(){
+  const summary = `JAINREC | NSE 544537 | Risk Score Report
+CMP: Rs.383.60 | Mcap: Rs.13,486 Cr | RISK: 68/100 (HIGH)
+P/E 38.8x | P/B 9.0x | FY26 Rev Rs.9,543 Cr (+48%)
+
+Q4FY26 (18-May-2026):
+- Revenue Rs.2,859 Cr | EBITDA 7.5%
+- PAT Rs.66 Cr (missed estimates)
+- Stock crashed 33% in 2 days
+
+KEY RED FLAGS:
+- Working capital cycle: 45 to 90 days (2x)
+- Copper EBITDA/ton: Rs.51k to Rs.42k (-18%)
+- Lock-in expires Sep 2026 (supply overhang)
+- FII only 3%, institutional anchor weak
+
+STREET: MOSL BUY Rs.560 (cut EPS 15-16%)
+Desk fair value: Rs.280 | Bear case: Rs.230
+
+VERDICT: AVOID / WAIT
+Entry: Rs.250-280 post lock-in
+Stop: Rs.310 | Position cap: 1-1.5%
+
+Report by Harshit Gandhi | 22-May-2026 | EDUCATIONAL ONLY`;
+  navigator.clipboard.writeText(summary).then(()=>{
+    const btn=document.getElementById('copyBtn');
+    btn.textContent='\u2713 Copied';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='\u22C5 Copy Summary';btn.classList.remove('copied');},2400);
+  });
+}
+</script>
+</body>
+</html>

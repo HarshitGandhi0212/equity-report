@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TIINDIA • Risk Score Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#08090d;--bg-2:#0d0f15;--bg-3:#11141c;--line:#1d212c;--line-2:#262b38;--text:#e6e8ee;--text-2:#9aa0ad;--text-3:#5a6071;--green:#3ddc97;--green-soft:#10271f;--red:#ff5470;--red-soft:#2a121a;--amber:#ffb547;--amber-soft:#2a1e0e;--accent:#7cc1ff;--gold:#d4af37;--copper:#cb6843;--mono:'JetBrains Mono',ui-monospace,monospace;--sans:'DM Sans',system-ui,sans-serif;--serif:'Fraunces',Georgia,serif;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  body{background:radial-gradient(1200px 600px at 10% -10%, rgba(124,193,255,.04), transparent 60%),radial-gradient(900px 500px at 100% 0%, rgba(255,181,71,.03), transparent 50%),linear-gradient(180deg, var(--bg) 0%, #06070b 100%);min-height:100vh;padding:24px 16px 80px;}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse at 50% 0%, #000 30%, transparent 80%);}
+  .page{position:relative;z-index:1;max-width:1280px;margin:0 auto 32px;background:linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);border:1px solid var(--line);border-radius:2px;overflow:hidden;}
+  .page-inner{padding:28px 32px;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 32px;border-bottom:1px solid var(--line);background:linear-gradient(90deg, #0a0c11, #0d0f15);}
+  .topbar-left{display:flex;align-items:center;gap:16px;}
+  .ticker-block{display:flex;align-items:baseline;gap:10px;}
+  .ticker{font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.5px;color:var(--text);}
+  .exchange{font-family:var(--mono);font-size:10px;color:var(--text-3);border:1px solid var(--line-2);padding:2px 6px;border-radius:2px;letter-spacing:1px;}
+  .company{font-size:13px;color:var(--text-2);font-weight:400;}
+  .price-block{display:flex;align-items:baseline;gap:14px;}
+  .ltp{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text);}
+  .chg{font-family:var(--mono);font-size:13px;font-weight:500;}
+  .chg.dn{color:var(--red);}
+  .meta{display:flex;gap:18px;font-family:var(--mono);font-size:10.5px;color:var(--text-3);letter-spacing:.5px;text-transform:uppercase;}
+  .meta span b{color:var(--text-2);font-weight:500;}
+  .report-head{padding:28px 32px 18px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;border-bottom:1px solid var(--line);}
+  .report-title{font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.05;letter-spacing:-.5px;color:var(--text);}
+  .report-title em{font-style:italic;color:var(--amber);font-weight:400;}
+  .report-sub{font-size:12.5px;color:var(--text-2);margin-top:8px;max-width:640px;line-height:1.55;}
+  .stamp{text-align:right;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;line-height:1.8;}
+  .stamp b{color:var(--text);font-weight:500;}
+  .row{display:grid;gap:20px;}
+  .row.two{grid-template-columns:1.2fr 1fr;}
+  @media (max-width:980px){.row.two{grid-template-columns:1fr;}}
+  .panel{background:var(--bg-3);border:1px solid var(--line);border-radius:2px;padding:20px;}
+  .panel-label{font-family:var(--mono);font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-3);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+  .panel-label .pl-tag{background:var(--line);color:var(--text-2);padding:2px 7px;border-radius:1px;font-size:9px;letter-spacing:1px;}
+  .gauge-wrap{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;}
+  .gauge{position:relative;width:200px;height:120px;}
+  .gauge svg{width:100%;height:100%;}
+  .gauge-num{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);text-align:center;}
+  .gauge-num .n{font-family:var(--mono);font-weight:700;font-size:42px;color:var(--text);line-height:1;}
+  .gauge-num .max{font-family:var(--mono);font-size:11px;color:var(--text-3);}
+  .gauge-band{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--amber);margin-top:6px;text-transform:uppercase;}
+  .gauge-side .gs-title{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--text);line-height:1.1;}
+  .gauge-side .gs-sub{font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.5;}
+  .gauge-side .gs-meta{margin-top:14px;display:flex;gap:18px;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.8px;text-transform:uppercase;}
+  .gauge-side .gs-meta b{color:var(--text);font-weight:500;}
+  .kpi{padding:14px;border:1px solid var(--line);background:linear-gradient(180deg, #0c0e14, #0a0c11);border-radius:2px;}
+  .kpi .k-label{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;}
+  .kpi .k-val{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--text);margin-top:6px;letter-spacing:-.5px;}
+  .kpi .k-sub{font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:4px;}
+  .kpi .k-sub.dn{color:var(--red);}.kpi .k-sub.up{color:var(--green);}
+  .chart-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .chart-head .ch-title{font-family:var(--serif);font-size:18px;font-weight:600;}
+  .chart-head .ch-meta{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  svg.price-chart{width:100%;height:280px;display:block;}
+  .chart-legend{display:flex;gap:18px;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;flex-wrap:wrap;}
+  .chart-legend .lg{display:flex;align-items:center;gap:6px;}
+  .chart-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .section-head{display:flex;align-items:center;gap:16px;margin:34px 0 14px;}
+  .section-head h2{font-family:var(--serif);font-weight:600;font-size:20px;letter-spacing:-.3px;}
+  .section-head .sh-rule{flex:1;height:1px;background:linear-gradient(90deg, var(--line-2), transparent);}
+  .section-head .sh-tag{font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;}
+  .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  @media (max-width:780px){.card-grid{grid-template-columns:repeat(2,1fr);}}
+  .mcard{background:var(--bg-3);border:1px solid var(--line);border-left:3px solid var(--line-2);padding:14px;border-radius:2px;}
+  .mcard.green{border-left-color:var(--green);background:linear-gradient(180deg, #0c1612 0%, var(--bg-3) 100%);}
+  .mcard.red{border-left-color:var(--red);background:linear-gradient(180deg, #16100f 0%, var(--bg-3) 100%);}
+  .mcard.amber{border-left-color:var(--amber);background:linear-gradient(180deg, #161108 0%, var(--bg-3) 100%);}
+  .mc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .mc-name{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .mc-flag{font-family:var(--mono);font-size:9px;font-weight:600;padding:2px 6px;border-radius:1px;letter-spacing:1px;}
+  .mc-flag.green{background:var(--green-soft);color:var(--green);}
+  .mc-flag.red{background:var(--red-soft);color:var(--red);}
+  .mc-flag.amber{background:var(--amber-soft);color:var(--amber);}
+  .mc-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);margin-top:8px;letter-spacing:-.5px;}
+  .mc-bench{font-family:var(--mono);font-size:10.5px;color:var(--text-2);margin-top:3px;}
+  .mc-note{font-size:11.5px;color:var(--text-2);line-height:1.5;margin-top:8px;}
+  .breakdown{margin-top:20px;}
+  .bd-row{display:grid;grid-template-columns:120px 1fr 60px 50px;gap:14px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);}
+  .bd-row:last-child{border-bottom:none;}
+  .bd-label{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-2);}
+  .bd-bar{height:8px;background:var(--line);border-radius:1px;overflow:hidden;}
+  .bd-bar > div{height:100%;border-radius:1px;}
+  .bd-bar.high > div{background:linear-gradient(90deg, var(--red), #ff8a5b);}
+  .bd-bar.mid > div{background:linear-gradient(90deg, var(--amber), #ffd685);}
+  .bd-bar.low > div{background:linear-gradient(90deg, var(--green), #8be9c4);}
+  .bd-score{font-family:var(--mono);font-size:13px;font-weight:600;text-align:right;color:var(--text);}
+  .bd-weight{font-family:var(--mono);font-size:10px;color:var(--text-3);text-align:right;letter-spacing:1px;}
+  .page-no{position:absolute;top:10px;right:14px;font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:2px;}
+  .qtable{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;}
+  .qtable th,.qtable td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);}
+  .qtable th:first-child,.qtable td:first-child{text-align:left;}
+  .qtable th{font-size:9.5px;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;font-weight:500;background:#0a0c11;border-bottom:1px solid var(--line-2);}
+  .qtable td{color:var(--text-2);}
+  .qtable td:first-child{color:var(--text);font-weight:500;}
+  .qtable .pos{color:var(--green);}.qtable .neg{color:var(--red);}
+  .qtable tr.latest td{background:#0d1118;color:var(--text);font-weight:600;}
+  .qtable tr.latest td:first-child{color:var(--amber);}
+  .earn-card{background:linear-gradient(135deg, #0e1219 0%, var(--bg-3) 100%);border:1px solid var(--line);padding:20px;border-radius:2px;}
+  .earn-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
+  .earn-head h3{font-family:var(--serif);font-size:18px;font-weight:600;}
+  .earn-head .tag{font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--amber);padding:2px 6px;}
+  .earn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;}
+  .eg-lbl{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .eg-val{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--text);margin-top:4px;}
+  .eg-sub{font-family:var(--mono);font-size:10px;margin-top:2px;}
+  .earn-body{font-size:12.5px;color:var(--text-2);line-height:1.6;border-top:1px dashed var(--line);padding-top:12px;}
+  .earn-body b{color:var(--text);font-weight:500;}
+  .dual{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:780px){.dual{grid-template-columns:1fr;}}
+  .col-cat,.col-risk{padding:18px;border:1px solid var(--line);border-radius:2px;}
+  .col-cat{background:linear-gradient(180deg, #0c1612 0%, var(--bg-3) 100%);border-top:2px solid var(--green);}
+  .col-risk{background:linear-gradient(180deg, #16100f 0%, var(--bg-3) 100%);border-top:2px solid var(--red);}
+  .col-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
+  .col-head h3{font-family:var(--serif);font-size:17px;font-weight:600;}
+  .col-cat .col-head h3{color:var(--green);}.col-risk .col-head h3{color:var(--red);}
+  .col-head .ct{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.5px;}
+  .pt{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);}
+  .pt:last-child{border-bottom:none;}
+  .pt .pt-n{font-family:var(--mono);font-size:10px;color:var(--text-3);}
+  .pt .pt-t{font-size:12.5px;color:var(--text-2);line-height:1.5;}
+  .pt .pt-t b{color:var(--text);font-weight:500;}
+  .expert-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  @media (max-width:780px){.expert-grid{grid-template-columns:repeat(2,1fr);}}
+  .ex{border:1px solid var(--line);padding:12px;background:var(--bg-3);border-radius:2px;border-top:2px solid var(--text-3);}
+  .ex.buy{border-top-color:var(--green);}.ex.sell{border-top-color:var(--red);}.ex.hold{border-top-color:var(--amber);}
+  .ex-broker{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  .ex-call{font-family:var(--mono);font-size:11px;font-weight:600;margin-top:6px;letter-spacing:1.5px;}
+  .ex.buy .ex-call{color:var(--green);}.ex.sell .ex-call{color:var(--red);}.ex.hold .ex-call{color:var(--amber);}
+  .ex-tp{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:6px;letter-spacing:-.3px;}
+  .ex-up{font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:2px;}
+  .ind{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:780px){.ind{grid-template-columns:1fr;}}
+  .ind-block{padding:16px;border:1px solid var(--line);background:var(--bg-3);border-radius:2px;}
+  .ind-block h4{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:10px;}
+  .ind-row{display:flex;justify-content:space-between;padding:7px 0;font-family:var(--mono);font-size:11px;border-bottom:1px dashed var(--line);}
+  .ind-row:last-child{border-bottom:none;}
+  .ind-row .l{color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  .ind-row .v{color:var(--text);font-weight:600;}
+  .verdict{margin-top:24px;background:linear-gradient(135deg, #0e1219 0%, #0a0c11 100%);border:1px solid var(--line);border-radius:2px;padding:24px;position:relative;overflow:hidden;}
+  .verdict::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 200px at 100% 0%, rgba(255,181,71,.06), transparent 60%);pointer-events:none;}
+  .verdict-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;position:relative;}
+  .verdict-head h3{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.3px;}
+  .verdict-head .vh-tag{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--amber);text-transform:uppercase;border:1px solid var(--amber);padding:3px 8px;}
+  .rating-bar{margin:14px 0 16px;position:relative;}
+  .rb-track{height:32px;background:linear-gradient(90deg, var(--red) 0%, #ff8a5b 25%, var(--amber) 50%, #8be9c4 75%, var(--green) 100%);border-radius:2px;position:relative;}
+  .rb-marker{position:absolute;top:-6px;bottom:-6px;width:3px;background:var(--text);box-shadow:0 0 0 2px var(--bg);}
+  .rb-marker::after{content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border:6px solid transparent;border-top-color:var(--text);}
+  .rb-labels{display:flex;justify-content:space-between;margin-top:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;}
+  .verdict-text{font-size:13.5px;color:var(--text-2);line-height:1.65;}
+  .verdict-text b{color:var(--text);font-weight:500;}
+  .verdict-text .tag{display:inline-block;padding:1px 6px;font-family:var(--mono);font-size:10px;letter-spacing:1px;background:var(--amber-soft);color:var(--amber);border-radius:1px;margin:0 2px;}
+  .actions{margin-top:24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:18px;border-top:1px solid var(--line);}
+  .disclaim{font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:.8px;line-height:1.6;max-width:780px;}
+  .copy-btn{background:transparent;color:var(--amber);border:1px solid var(--amber);font-family:var(--mono);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;padding:10px 18px;cursor:pointer;border-radius:2px;transition:all .2s;}
+  .copy-btn:hover{background:var(--amber);color:var(--bg);}.copy-btn.copied{background:var(--green);color:var(--bg);border-color:var(--green);}
+  .micro{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<section class="page">
+  <span class="page-no">PG 01 / 02</span>
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="ticker-block"><span class="ticker">TIINDIA</span><span class="exchange">NSE &bull; 540762</span></div>
+      <span class="company">Tube Investments of India Ltd &middot; Auto Anc &middot; Engineering &middot; EV</span>
+    </div>
+    <div class="price-block"><span class="ltp">&#8377;2,940.65</span><span class="chg dn">&minus;1Y &minus;18%</span></div>
+  </div>
+  <div class="topbar" style="border-top:0;border-bottom:1px solid var(--line);padding-top:8px;padding-bottom:8px;">
+    <div class="meta"><span>SECTOR <b>AUTO ANCILLARY</b></span><span>GROUP <b>MURUGAPPA</b></span><span>ISIN <b>INE974X01010</b></span><span>BETA <b>1.05</b></span></div>
+    <div class="meta"><span>AS OF <b>21-MAY-2026</b></span></div>
+  </div>
+  <div class="report-head">
+    <div>
+      <div class="report-title">Equity Risk &amp; Quality Report <em>&mdash; Post Q4FY26</em></div>
+      <p class="report-sub">Independent assessment of Tube Investments of India post Q4FY26 print (May 13, 2026). Highest-ever quarterly revenue (&#8377;6,215 Cr) overshadowed by a 53.4% tax rate spike that crushed reported PAT 48% QoQ. Real question: structural quality compounder, or stretched valuation in transition?</p>
+    </div>
+    <div class="stamp">
+      <div>Report ID &middot; <b>TIINDIA &middot; RR-2105-FY26</b></div>
+      <div>Analyst &middot; <b>Harshit Gandhi</b></div>
+      <div>Coverage &middot; <b>Initiating</b></div>
+      <div>Currency &middot; <b>INR &#8377; (Cr)</b></div>
+    </div>
+  </div>
+
+  <div class="page-inner">
+    <div class="row two" style="margin-bottom:20px;">
+      <div class="panel">
+        <div class="panel-label"><span>Composite Risk Score</span><span class="pl-tag">SCALE 0&rarr;100</span></div>
+        <div class="gauge-wrap">
+          <div class="gauge">
+            <svg viewBox="0 0 200 120">
+              <path d="M 20 110 A 80 80 0 0 1 60 41.2" stroke="#1a3a2a" stroke-width="14" fill="none"/><path d="M 60 41.2 A 80 80 0 0 1 100 30" stroke="#2a3a1a" stroke-width="14" fill="none"/><path d="M 100 30 A 80 80 0 0 1 140 41.2" stroke="#3a2e10" stroke-width="14" fill="none"/><path d="M 140 41.2 A 80 80 0 0 1 180 110" stroke="#3a1418" stroke-width="14" fill="none"/>
+              <path d="M 20 110 A 80 80 0 0 1 125.5 33" stroke="url(#gg)" stroke-width="14" fill="none" stroke-linecap="round"/>
+              <defs><linearGradient id="gg" x1="0" x2="1"><stop offset="0" stop-color="#3ddc97"/><stop offset=".55" stop-color="#ffb547"/><stop offset="1" stop-color="#ff5470"/></linearGradient></defs>
+              <line x1="100" y1="110" x2="125.5" y2="33" stroke="#e6e8ee" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="100" cy="110" r="6" fill="#08090d" stroke="#e6e8ee" stroke-width="2"/>
+              <text x="14" y="118" font-family="JetBrains Mono" font-size="8" fill="#5a6071">0</text><text x="92" y="22" font-family="JetBrains Mono" font-size="8" fill="#5a6071">50</text><text x="178" y="118" font-family="JetBrains Mono" font-size="8" fill="#5a6071">100</text>
+            </svg>
+            <div class="gauge-num"><div class="n">61</div><div class="max">/ 100</div><div class="gauge-band">&#9660; ELEVATED</div></div>
+          </div>
+          <div class="gauge-side">
+            <div class="gs-title">Quality Compounder, Stretched Multiple</div>
+            <div class="gs-sub">Highest-ever quarterly revenue. But TICMPL (EV subsidiary) burning cash, FII selling persistently (552 funds, declining count), and P/E at 70x for an auto-anc business prices in flawless execution. MFs absorbing FII supply is the only structural support.</div>
+            <div class="gs-meta"><span>VAL <b style="color:var(--red);">72</b></span><span>HEALTH <b style="color:var(--amber);">58</b></span><span>GROWTH <b style="color:var(--amber);">52</b></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-label"><span>Snapshot &middot; Key Metrics</span><span class="pl-tag">CONSOL &middot; TTM</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+          <div class="kpi"><div class="k-label">Market Cap</div><div class="k-val">&#8377;57,299 Cr</div><div class="k-sub">Largecap</div></div>
+          <div class="kpi"><div class="k-label">P/E (TTM)</div><div class="k-val">~70&times;</div><div class="k-sub dn">Sector: 24&times;</div></div>
+          <div class="kpi"><div class="k-label">P/B</div><div class="k-val">~9.5&times;</div><div class="k-sub dn">Sector: 3.8&times;</div></div>
+          <div class="kpi"><div class="k-label">FY26 Revenue</div><div class="k-val">&#8377;22,847 Cr</div><div class="k-sub up">+15% YoY</div></div>
+          <div class="kpi"><div class="k-label">52W Range</div><div class="k-val">&#8377;2,450&ndash;5,200</div><div class="k-sub dn">43% off high</div></div>
+          <div class="kpi"><div class="k-label">1Y Return</div><div class="k-val" style="color:var(--red);">&minus;18%</div><div class="k-sub">Auto index +5%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="chart-head"><div class="ch-title">12-Month Price Trajectory <span style="font-family:var(--mono);font-weight:400;font-size:11px;color:var(--text-3);letter-spacing:1px;">&middot; MAY 25 &rarr; MAY 26</span></div><div class="ch-meta">CLOSE &middot; NSE</div></div>
+      <svg class="price-chart" viewBox="0 0 1200 280" preserveAspectRatio="none">
+        <defs><linearGradient id="ag" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffb547" stop-opacity=".22"/><stop offset="1" stop-color="#ffb547" stop-opacity="0"/></linearGradient></defs>
+        <g stroke="#1d212c" stroke-width="1" stroke-dasharray="2,4"><line x1="0" y1="40" x2="1200" y2="40"/><line x1="0" y1="90" x2="1200" y2="90"/><line x1="0" y1="140" x2="1200" y2="140"/><line x1="0" y1="190" x2="1200" y2="190"/><line x1="0" y1="240" x2="1200" y2="240"/></g>
+        <g font-family="JetBrains Mono" font-size="9" fill="#5a6071"><text x="6" y="44">5400</text><text x="6" y="94">4650</text><text x="6" y="144">3900</text><text x="6" y="194">3150</text><text x="6" y="244">2400</text></g>
+        <g font-family="JetBrains Mono" font-size="9" fill="#5a6071" text-anchor="middle"><text x="50" y="262">MAY</text><text x="142" y="262">JUN</text><text x="234" y="262">JUL</text><text x="326" y="262">AUG</text><text x="418" y="262">SEP</text><text x="510" y="262">OCT</text><text x="602" y="262">NOV</text><text x="694" y="262">DEC</text><text x="786" y="262">JAN</text><text x="878" y="262">FEB</text><text x="970" y="262">MAR</text><text x="1062" y="262">APR</text><text x="1154" y="262">MAY</text></g>
+        <!-- TIINDIA: ~3600 May'25, peak ~4750 Aug, decline to 3650 Nov, 3200 Feb, 2450 low Mar, recovery to 2940 May'26 -->
+        <!-- y = 240 - ((price-2400)/3000)*200 -->
+        <!-- 3600:160; 4250:117; 4750:84; 4500:100; 4200:120; 3900:140; 3650:157; 3500:167; 3200:187; 2900:207; 2450:237; 2700:220; 2940:204 -->
+        <path d="M 50 160 L 142 117 L 234 84 L 326 100 L 418 120 L 510 140 L 602 157 L 694 167 L 786 187 L 878 207 L 970 237 L 1062 220 L 1154 204 L 1154 240 L 50 240 Z" fill="url(#ag)"/>
+        <polyline points="50,160 142,117 234,84 326,100 418,120 510,140 602,157 694,167 786,187 878,207 970,237 1062,220 1154,204" fill="none" stroke="#ffb547" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+        <g><circle cx="234" cy="84" r="5" fill="#3ddc97" stroke="#08090d" stroke-width="2"/><text x="234" y="74" font-family="JetBrains Mono" font-size="9" fill="#3ddc97" text-anchor="middle">52W HIGH &#8377;5,200</text></g>
+        <g><circle cx="970" cy="237" r="5" fill="#ff5470" stroke="#08090d" stroke-width="2"/><text x="970" y="232" font-family="JetBrains Mono" font-size="9" fill="#ff5470" text-anchor="middle">52W LOW &#8377;2,450</text></g>
+        <g><circle cx="1062" cy="220" r="5" fill="#7cc1ff" stroke="#08090d" stroke-width="2"/><text x="1062" y="208" font-family="JetBrains Mono" font-size="9" fill="#7cc1ff" text-anchor="middle">TIVOLT ACQ &middot; APR'26</text></g>
+        <g><circle cx="1154" cy="204" r="5" fill="#ffb547" stroke="#08090d" stroke-width="2"/><text x="1100" y="194" font-family="JetBrains Mono" font-size="9" fill="#ffb547" text-anchor="end">Q4 REV BEAT, PAT MISS</text></g>
+      </svg>
+      <div class="chart-legend"><span class="lg"><span class="dot" style="background:#ffb547;"></span>TIINDIA</span><span class="lg"><span class="dot" style="background:#3ddc97;"></span>52W HIGH</span><span class="lg"><span class="dot" style="background:#ff5470;"></span>52W LOW</span><span class="lg"><span class="dot" style="background:#7cc1ff;"></span>EVENT</span></div>
+    </div>
+
+    <div class="section-head"><h2>Valuation</h2><div class="sh-rule"></div><span class="sh-tag">06 METRICS</span></div>
+    <div class="card-grid">
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">P/E (TTM)</span><span class="mc-flag red">MISS</span></div><div class="mc-val">~70&times;</div><div class="mc-bench">Sector: 24&times; &middot; 5Y avg: 45&times;</div><div class="mc-note">Premium even after 43% drawdown. Justified only if TICMPL/EV business scales meaningfully.</div></div>
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">P/B</span><span class="mc-flag red">MISS</span></div><div class="mc-val">~9.5&times;</div><div class="mc-bench">Sector: 3.8&times; &middot; 2.5x premium</div><div class="mc-note">Sticky book/sales premium &mdash; Murugappa group quality premium baked in.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">EV / EBITDA</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">~30&times;</div><div class="mc-bench">Sector: 15&times;</div><div class="mc-note">Reasonable for the engineering/aerospace mix; rich for the auto-anc core.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">PEG (FWD)</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">~3.5&times;</div><div class="mc-bench">Comfort: &lt;1.5&times;</div><div class="mc-note">No margin of safety. Growth has to accelerate to justify the multiple.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">Dividend Yield</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">0.12%</div><div class="mc-bench">FY26 total DPS: &#8377;3.50</div><div class="mc-note">Capital being absorbed by TICMPL and inorganic growth (Tivolt, Orange Koi).</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">Mcap / Sales</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">2.5&times;</div><div class="mc-bench">Sector: 1.4&times;</div><div class="mc-note">~75% premium on sales is high for a multi-segment industrial conglomerate.</div></div>
+    </div>
+
+    <div class="section-head"><h2>Financial Health</h2><div class="sh-rule"></div><span class="sh-tag">06 METRICS</span></div>
+    <div class="card-grid">
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Debt / Equity</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">0.45&times;</div><div class="mc-bench">Healthy leverage</div><div class="mc-note">Conservative balance sheet, Murugappa group hallmark. Headroom for capex and M&amp;A.</div></div>
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Interest Coverage</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">~14&times;</div><div class="mc-bench">Very strong</div><div class="mc-note">EBITDA easily covers finance costs even after capex ramp.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">CFO / EBITDA</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">~65%</div><div class="mc-bench">Below 70% benchmark</div><div class="mc-note">TICMPL working capital absorbing cash. Standalone is much cleaner.</div></div>
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Promoter Holding</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">~46%</div><div class="mc-bench">Murugappa group stable</div><div class="mc-note">Zero pledge, multi-generational ownership stability.</div></div>
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">FII Holding</span><span class="mc-flag red">MISS</span></div><div class="mc-val">~21%</div><div class="mc-bench">Declining QoQ for 3 quarters</div><div class="mc-note"><b>552 FIIs down to ~510 in Q4.</b> Persistent foreign outflow being absorbed by MFs (14.69% now, up from 10.32%).</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">ROE</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">~14%</div><div class="mc-bench">Sector median: 17% &middot; declining</div><div class="mc-note">ROE compression from TICMPL losses and one-off tax hit in Q4.</div></div>
+    </div>
+
+    <div class="section-head"><h2>Growth</h2><div class="sh-rule"></div><span class="sh-tag">06 METRICS</span></div>
+    <div class="card-grid">
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Revenue YoY (Q4)</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">+20.68%</div><div class="mc-bench">Q4 &#8377;6,215 Cr &middot; record high</div><div class="mc-note">Highest-ever quarterly revenue. Engineering and mobility leading.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">FY26 Rev YoY</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">+15%</div><div class="mc-bench">FY26 &#8377;22,847 Cr</div><div class="mc-note">Decent but below 18-20% Street expectation. Q4 picked up vs slower H1.</div></div>
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">Q4 PAT QoQ</span><span class="mc-flag red">MISS</span></div><div class="mc-val">&minus;48.48%</div><div class="mc-bench">Q4 PAT &#8377;85.45 Cr</div><div class="mc-note">Tax rate spiked to 53.4% (unusually high). Pre-tax operating performance was strong.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">EBITDA Margin</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">~11.5%</div><div class="mc-bench">Resilient but flat</div><div class="mc-note">Margin holding despite EV investment drag. Standalone closer to 14-15%.</div></div>
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">EV (TICMPL) Scale</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">Tivolt acquired</div><div class="mc-bench">100% stake, &#8377;30 Cr</div><div class="mc-note">Inorganic EV expansion. Building scale; profitability still 2-3 years out.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">Dividend</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">&#8377;3.50/sh</div><div class="mc-bench">Interim &#8377;2 + Final &#8377;1.50</div><div class="mc-note">Stable dividend signal &mdash; FY26 payout maintained despite PAT volatility.</div></div>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <div class="panel-label"><span>Score Breakdown</span><span class="pl-tag">VAL 35 / HEALTH 35 / GROWTH 30</span></div>
+      <div class="breakdown">
+        <div class="bd-row"><div class="bd-label">Valuation</div><div class="bd-bar high"><div style="width:72%"></div></div><div class="bd-score">72</div><div class="bd-weight">&times;0.35</div></div>
+        <div class="bd-row"><div class="bd-label">Fin. Health</div><div class="bd-bar mid"><div style="width:58%"></div></div><div class="bd-score">58</div><div class="bd-weight">&times;0.35</div></div>
+        <div class="bd-row"><div class="bd-label">Growth</div><div class="bd-bar mid"><div style="width:52%"></div></div><div class="bd-score">52</div><div class="bd-weight">&times;0.30</div></div>
+        <div class="bd-row" style="border-top:1px solid var(--line-2);padding-top:14px;border-bottom:none;"><div class="bd-label" style="color:var(--amber);">COMPOSITE</div><div class="bd-bar"><div style="width:61%;background:linear-gradient(90deg,var(--accent),var(--amber));"></div></div><div class="bd-score" style="color:var(--amber);font-size:16px;">61</div><div class="bd-weight">/ 100</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page">
+  <span class="page-no">PG 02 / 02</span>
+  <div class="report-head">
+    <div><div class="report-title">Operating Detail <em>&amp; Verdict</em></div><p class="report-sub">Quarterly trajectory, Q4FY26 print decomposition, thesis, sell-side view, and the bottom-line call.</p></div>
+    <div class="stamp"><div>TIINDIA &middot; <b>NSE 540762</b></div><div>CMP &middot; <b>&#8377;2,940.65</b></div><div>RISK &middot; <b style="color:var(--amber);">61 / 100</b></div><div>CALL &middot; <b style="color:var(--amber);">HOLD &middot; WAIT BELOW &#8377;2,600</b></div></div>
+  </div>
+
+  <div class="page-inner">
+    <div class="panel">
+      <div class="panel-label"><span>Quarterly Trend &middot; Consolidated</span><span class="pl-tag">LAST 6 QTRS &middot; &#8377; Cr</span></div>
+      <table class="qtable">
+        <thead><tr><th>Quarter</th><th>Revenue</th><th>EBITDA</th><th>EBITDA %</th><th>PAT</th><th>EPS (&#8377;)</th><th>YoY PAT</th></tr></thead>
+        <tbody>
+          <tr><td>Q3FY25 &middot; Dec'24</td><td>4,820</td><td>568</td><td>11.8%</td><td>193</td><td>9.98</td><td class="pos">+18%</td></tr>
+          <tr><td>Q4FY25 &middot; Mar'25</td><td>5,151</td><td>620</td><td>12.0%</td><td>185</td><td>9.56</td><td class="neg">&minus;4%</td></tr>
+          <tr><td>Q1FY26 &middot; Jun'25</td><td>5,089</td><td>590</td><td>11.6%</td><td>156</td><td>8.06</td><td class="neg">&minus;19%</td></tr>
+          <tr><td>Q2FY26 &middot; Sep'25</td><td>4,892</td><td>552</td><td>11.3%</td><td>165.86</td><td>8.57</td><td class="neg">&minus;14%</td></tr>
+          <tr><td>Q3FY26 &middot; Dec'25</td><td>5,651</td><td>695</td><td>12.3%</td><td>279</td><td>14.42</td><td class="pos">+44%</td></tr>
+          <tr class="latest"><td>Q4FY26 &middot; Mar'26</td><td>6,215</td><td>755</td><td>12.1%</td><td>85.45</td><td>4.42</td><td class="neg">&minus;54%*</td></tr>
+        </tbody>
+      </table>
+      <div class="micro" style="margin-top:10px;color:var(--text-3);">*Q4 PAT collapsed due to 53.4% effective tax rate (one-off). Pre-tax operating performance robust; revenue all-time high.</div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <div class="earn-card">
+        <div class="earn-head"><h3>Q4FY26 Earnings &middot; 13-May-2026</h3><span class="tag">REV BEAT &middot; PAT TAX-DRIVEN MISS</span></div>
+        <div class="earn-grid">
+          <div><div class="eg-lbl">Q4 Revenue</div><div class="eg-val">&#8377;6,215 Cr</div><div class="eg-sub" style="color:var(--green);">+20.68% YoY</div></div>
+          <div><div class="eg-lbl">FY26 Revenue</div><div class="eg-val">&#8377;22,847 Cr</div><div class="eg-sub" style="color:var(--green);">+15% YoY</div></div>
+          <div><div class="eg-lbl">Q4 PAT</div><div class="eg-val">&#8377;85.45 Cr</div><div class="eg-sub" style="color:var(--red);">&minus;48% QoQ</div></div>
+          <div><div class="eg-lbl">Final Dividend</div><div class="eg-val">&#8377;1.50/sh</div><div class="eg-sub" style="color:var(--text-3);">+Interim &#8377;2 &middot; Total &#8377;3.50</div></div>
+        </div>
+        <div class="earn-body">
+          <b>Print quality:</b> Tale of two narratives. Top-line momentum was stellar &mdash; <b>record quarterly revenue of &#8377;6,215 Cr</b>, up 20.68% YoY, driven by Engineering and Mobility segments. Operating margins held at 12.1%, indicating real underlying strength.
+          <br><br>
+          <b>What broke the headline:</b> An unusually elevated <b>tax rate of 53.4%</b> in Q4 (vs ~25-28% normal) crushed reported PAT to &#8377;85 Cr from &#8377;279 Cr the prior quarter. This appears to be a one-off tax provisioning anomaly, not a deterioration in operations.
+          <br><br>
+          <b>Strategic moves:</b> (1) Acquired <b>Tivolt EV</b> (100% stake, &#8377;30 Cr) on Apr 1, 2026 &mdash; consolidating EV manufacturing under TICMPL; (2) Completed acquisition of <b>Orange Koi Private Ltd</b> on Apr 7. TICMPL (TI Clean Mobility) remains in heavy investment phase &mdash; near-term margin drag, multi-year option value.
+          <br><br>
+          <b>Institutional dynamics:</b> FII selling continues (count down from 600+ to ~510). Domestic MFs absorbing supply (10.32% &rarr; 14.69% in 12 months). Notable divergence in conviction.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head"><h2>Thesis &middot; Catalysts vs Risks</h2><div class="sh-rule"></div><span class="sh-tag">DUAL COLUMN</span></div>
+    <div class="dual">
+      <div class="col-cat">
+        <div class="col-head"><h3>&#9650; Catalysts</h3><span class="ct">BULL CASE</span></div>
+        <div class="pt"><span class="pt-n">01</span><span class="pt-t"><b>Murugappa Group quality premium.</b> Multi-generational owner, conservative finances, multi-segment moat (auto-anc, engineering, aerospace).</span></div>
+        <div class="pt"><span class="pt-n">02</span><span class="pt-t"><b>EV optionality (TICMPL).</b> Tivolt + Orange Koi consolidate EV stack. 2-3 year monetisation roadmap.</span></div>
+        <div class="pt"><span class="pt-n">03</span><span class="pt-t"><b>Record quarterly revenue.</b> Q4 demonstrates demand strength &mdash; Engineering & Mobility expanding share of mix.</span></div>
+        <div class="pt"><span class="pt-n">04</span><span class="pt-t"><b>Tax normalisation = EPS rebound.</b> Q4 PAT was an optical, not real, miss. FY27 sees natural reversion.</span></div>
+        <div class="pt"><span class="pt-n">05</span><span class="pt-t"><b>Aerospace tailwind.</b> Indian defence + commercial aviation supplier wins &mdash; high-margin diversification.</span></div>
+        <div class="pt"><span class="pt-n">06</span><span class="pt-t"><b>MF accumulation.</b> Domestic MF holding up 437 bps in 12M. Domestic conviction signal.</span></div>
+      </div>
+      <div class="col-risk">
+        <div class="col-head"><h3>&#9660; Risks</h3><span class="ct">BEAR CASE</span></div>
+        <div class="pt"><span class="pt-n">01</span><span class="pt-t"><b>70&times; P/E for auto-anc.</b> Multiple is 3&times; sector. Any growth disappointment triggers sharp de-rating.</span></div>
+        <div class="pt"><span class="pt-n">02</span><span class="pt-t"><b>FII unwind persistent.</b> 552 funds, declining count for 3 quarters. Global growth/EM derating.</span></div>
+        <div class="pt"><span class="pt-n">03</span><span class="pt-t"><b>TICMPL cash burn.</b> EV subsidiary loss-making, capex-heavy. Standalone earnings carrying the consolidated load.</span></div>
+        <div class="pt"><span class="pt-n">04</span><span class="pt-t"><b>Auto cycle exposure.</b> Cyclical industry tied to OEM volumes &mdash; CV/PV slowdown directly impacts.</span></div>
+        <div class="pt"><span class="pt-n">05</span><span class="pt-t"><b>Working capital strain.</b> CFO/EBITDA 65% lags benchmark. Receivables stretched with EV scale-up.</span></div>
+        <div class="pt"><span class="pt-n">06</span><span class="pt-t"><b>43% drawdown not yet absorbed.</b> Stock fell from &#8377;5,200 to &#8377;2,450 &mdash; potential structural re-rating not yet complete.</span></div>
+      </div>
+    </div>
+
+    <div class="section-head"><h2>Street View</h2><div class="sh-rule"></div><span class="sh-tag">ANALYSTS DIVIDED</span></div>
+    <div class="expert-grid">
+      <div class="ex buy"><div class="ex-broker">JM Financial</div><div class="ex-call">BUY</div><div class="ex-tp">&#8377;3,650</div><div class="ex-up">Upside +24%</div></div>
+      <div class="ex buy"><div class="ex-broker">Motilal Oswal</div><div class="ex-call">BUY</div><div class="ex-tp">&#8377;3,500</div><div class="ex-up">Upside +19%</div></div>
+      <div class="ex hold"><div class="ex-broker">ICICI Sec</div><div class="ex-call">HOLD</div><div class="ex-tp">&#8377;3,100</div><div class="ex-up">Upside +5%</div></div>
+      <div class="ex hold"><div class="ex-broker">Nomura</div><div class="ex-call">NEUTRAL</div><div class="ex-tp">&#8377;3,000</div><div class="ex-up">Upside +2%</div></div>
+      <div class="ex sell"><div class="ex-broker">Goldman Sachs</div><div class="ex-call">SELL</div><div class="ex-tp">&#8377;2,400</div><div class="ex-up">Downside &minus;18%</div></div>
+      <div class="ex hold"><div class="ex-broker">Consensus (avg)</div><div class="ex-call">HOLD/BUY</div><div class="ex-tp">&#8377;3,200</div><div class="ex-up">Upside +9%</div></div>
+      <div class="ex buy"><div class="ex-broker">Bull Case</div><div class="ex-call">BUY</div><div class="ex-tp">&#8377;4,200</div><div class="ex-up">+43% &middot; TICMPL monetisation</div></div>
+      <div class="ex hold"><div class="ex-broker">Desk Call</div><div class="ex-call">HOLD &middot; WAIT</div><div class="ex-tp">&#8377;2,600</div><div class="ex-up">Entry zone</div></div>
+    </div>
+
+    <div class="section-head"><h2>Industry Context</h2><div class="sh-rule"></div><span class="sh-tag">SECTOR &amp; PEERS</span></div>
+    <div class="ind">
+      <div class="ind-block">
+        <h4>India Auto Components</h4>
+        <div class="ind-row"><span class="l">Market Size FY26</span><span class="v">~US$ 80 Bn</span></div>
+        <div class="ind-row"><span class="l">Projected FY30</span><span class="v">~US$ 200 Bn</span></div>
+        <div class="ind-row"><span class="l">CAGR FY26&ndash;30</span><span class="v" style="color:var(--green);">25%+</span></div>
+        <div class="ind-row"><span class="l">EV component share</span><span class="v">Rising &middot; 12% &rarr; 30%</span></div>
+        <div class="ind-row"><span class="l">TIINDIA share</span><span class="v">~2&ndash;3%</span></div>
+      </div>
+      <div class="ind-block">
+        <h4>Peer Set</h4>
+        <div class="ind-row"><span class="l">Bosch Ltd</span><span class="v">Mcap &#8377;90,000 Cr</span></div>
+        <div class="ind-row"><span class="l">UNO Minda</span><span class="v">Mcap &#8377;58,000 Cr</span></div>
+        <div class="ind-row"><span class="l">Bharat Forge</span><span class="v">Mcap &#8377;65,000 Cr</span></div>
+        <div class="ind-row"><span class="l">Sector P/E median</span><span class="v">24&times;</span></div>
+        <div class="ind-row"><span class="l">TIINDIA premium</span><span class="v" style="color:var(--amber);">+190%</span></div>
+      </div>
+    </div>
+
+    <div class="verdict">
+      <div class="verdict-head"><h3>Bottom Line</h3><span class="vh-tag">FINAL CALL</span></div>
+      <div class="rating-bar"><div class="rb-track"><div class="rb-marker" style="left:45%;"></div></div><div class="rb-labels"><span>STRONG SELL</span><span>SELL</span><span>HOLD</span><span>ACCUMULATE</span><span>STRONG BUY</span></div></div>
+      <div class="verdict-text">
+        <b>Rating: HOLD &middot; Wait for entry below &#8377;2,600 &middot; Accumulate &#8377;2,400&ndash;2,600.</b>
+        <br><br>
+        TIINDIA is genuinely a quality compounder &mdash; Murugappa group, multi-segment moat, record-high quarterly revenue, strong balance sheet, dividend-paying. The Q4 PAT miss is tax-driven, not operational. So the business is fine.
+        <br><br>
+        <b>The issue is the multiple.</b> At ~70&times; P/E for a primarily auto-anc business, the stock is pricing in the EV transition succeeding flawlessly &mdash; which it might not, or might take longer than expected. The 43% drawdown from &#8377;5,200 reflects that re-rating process is ongoing.
+        <br><br>
+        <b>What I'm pushing back on:</b> The bull case TPs of &#8377;3,500&ndash;3,650 assume TICMPL monetisation in 2-3 years AND tax normalisation AND continued auto cycle strength. That's three things that need to go right. ICICI's HOLD at &#8377;3,100 is the more honest call &mdash; near-term reward of +5% is not worth the downside risk.
+        <br><br>
+        <span class="tag">P/E 70x</span><span class="tag">FII OUTFLOW</span><span class="tag">EV CASH BURN</span><span class="tag" style="background:var(--green-soft);color:var(--green);">RECORD REVENUE</span>
+        <br><br>
+        <b>Tactical:</b> Existing holders &rarr; <span class="tag">HOLD</span>, dividends offset some drag. Fresh money &rarr; <span class="tag" style="background:var(--red-soft);color:var(--red);">WAIT</span>. Entry zone &#8377;2,400&ndash;2,600 (15-20% lower) gives a PEG of ~2.5&times; instead of 3.5&times;. <b>Hard stop &#8377;2,300</b> (below 52W low). Position cap 3% of equity book on entry.
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="disclaim"><b>Disclaimer:</b> Educational analysis only. Author Harshit Gandhi is NOT a SEBI-registered Investment Adviser or Research Analyst. Not investment advice. Data sourced from BSE/NSE filings, Q4FY26 earnings call (13-May-2026), broker reports. Markets carry risk of capital loss. Consult a SEBI-registered adviser.</div>
+      <button class="copy-btn" id="copyBtn" onclick="copyReport()">&#8901; Copy Summary</button>
+    </div>
+  </div>
+</section>
+
+<script>
+function copyReport(){
+  const summary=`TIINDIA | NSE 540762 | Risk Score Report
+CMP: Rs.2,940 | Mcap: Rs.57,299 Cr | RISK: 61/100
+P/E ~70x | P/B ~9.5x | FY26 Rev Rs.22,847 Cr (+15%)
+
+Q4FY26 (13-May-2026):
+- Revenue Rs.6,215 Cr (record, +20.68% YoY)
+- EBITDA 12.1% (resilient)
+- PAT Rs.85 Cr (-48% QoQ on 53.4% tax rate)
+- Final dividend Rs.1.50
+
+KEY OBSERVATIONS:
+- FII selling 3 quarters running
+- MFs absorbing (10.32% to 14.69%)
+- TICMPL EV burning cash
+- Tivolt + Orange Koi acquisitions
+
+STREET: JM/MOSL BUY Rs.3,500-3,650
+ICICI HOLD Rs.3,100 | Goldman SELL Rs.2,400
+Desk fair value: Rs.2,600
+
+VERDICT: HOLD | Wait for Rs.2,400-2,600
+Stop: Rs.2,300 | Cap: 3%
+
+Report by Harshit Gandhi | EDUCATIONAL ONLY`;
+  navigator.clipboard.writeText(summary).then(()=>{
+    const btn=document.getElementById('copyBtn');btn.textContent='\u2713 Copied';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='\u22C5 Copy Summary';btn.classList.remove('copied');},2400);
+  });
+}
+</script>
+</body>
+</html>
