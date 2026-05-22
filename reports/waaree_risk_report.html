@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WAAREEENER • Risk Score Report • FY26</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#08090d;--bg-2:#0d0f15;--bg-3:#11141c;--line:#1d212c;--line-2:#262b38;--text:#e6e8ee;--text-2:#9aa0ad;--text-3:#5a6071;--green:#3ddc97;--green-soft:#10271f;--red:#ff5470;--red-soft:#2a121a;--amber:#ffb547;--amber-soft:#2a1e0e;--accent:#7cc1ff;--gold:#d4af37;--sun:#ffd23f;--mono:'JetBrains Mono',ui-monospace,monospace;--sans:'DM Sans',system-ui,sans-serif;--serif:'Fraunces',Georgia,serif;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  body{background:radial-gradient(1200px 600px at 10% -10%, rgba(124,193,255,.04), transparent 60%),radial-gradient(900px 500px at 100% 0%, rgba(255,210,63,.04), transparent 50%),linear-gradient(180deg, var(--bg) 0%, #06070b 100%);min-height:100vh;padding:24px 16px 80px;}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px);background-size:48px 48px;mask-image:radial-gradient(ellipse at 50% 0%, #000 30%, transparent 80%);}
+  .page{position:relative;z-index:1;max-width:1280px;margin:0 auto 32px;background:linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);border:1px solid var(--line);border-radius:2px;overflow:hidden;}
+  .page-inner{padding:28px 32px;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 32px;border-bottom:1px solid var(--line);background:linear-gradient(90deg, #0a0c11, #0d0f15);}
+  .topbar-left{display:flex;align-items:center;gap:16px;}
+  .ticker-block{display:flex;align-items:baseline;gap:10px;}
+  .ticker{font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.5px;color:var(--text);}
+  .exchange{font-family:var(--mono);font-size:10px;color:var(--text-3);border:1px solid var(--line-2);padding:2px 6px;border-radius:2px;letter-spacing:1px;}
+  .company{font-size:13px;color:var(--text-2);font-weight:400;}
+  .price-block{display:flex;align-items:baseline;gap:14px;}
+  .ltp{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text);}
+  .chg{font-family:var(--mono);font-size:13px;font-weight:500;}
+  .chg.up{color:var(--green);}.chg.dn{color:var(--red);}
+  .meta{display:flex;gap:18px;font-family:var(--mono);font-size:10.5px;color:var(--text-3);letter-spacing:.5px;text-transform:uppercase;}
+  .meta span b{color:var(--text-2);font-weight:500;}
+  .report-head{padding:28px 32px 18px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;border-bottom:1px solid var(--line);}
+  .report-title{font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.05;letter-spacing:-.5px;color:var(--text);}
+  .report-title em{font-style:italic;color:var(--sun);font-weight:400;}
+  .report-sub{font-size:12.5px;color:var(--text-2);margin-top:8px;max-width:660px;line-height:1.55;}
+  .stamp{text-align:right;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;line-height:1.8;}
+  .stamp b{color:var(--text);font-weight:500;}
+  .row{display:grid;gap:20px;}.row.two{grid-template-columns:1.2fr 1fr;}
+  @media (max-width:980px){.row.two{grid-template-columns:1fr;}}
+  .panel{background:var(--bg-3);border:1px solid var(--line);border-radius:2px;padding:20px;}
+  .panel-label{font-family:var(--mono);font-size:9.5px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-3);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+  .panel-label .pl-tag{background:var(--line);color:var(--text-2);padding:2px 7px;border-radius:1px;font-size:9px;letter-spacing:1px;}
+  .gauge-wrap{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;}
+  .gauge{position:relative;width:200px;height:120px;}.gauge svg{width:100%;height:100%;}
+  .gauge-num{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);text-align:center;}
+  .gauge-num .n{font-family:var(--mono);font-weight:700;font-size:42px;color:var(--text);line-height:1;}
+  .gauge-num .max{font-family:var(--mono);font-size:11px;color:var(--text-3);}
+  .gauge-band{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--amber);margin-top:6px;text-transform:uppercase;}
+  .gauge-side .gs-title{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--text);line-height:1.1;}
+  .gauge-side .gs-sub{font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.5;}
+  .gauge-side .gs-meta{margin-top:14px;display:flex;gap:18px;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.8px;text-transform:uppercase;}
+  .gauge-side .gs-meta b{color:var(--text);font-weight:500;}
+  .kpi{padding:14px;border:1px solid var(--line);background:linear-gradient(180deg, #0c0e14, #0a0c11);border-radius:2px;}
+  .kpi .k-label{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;}
+  .kpi .k-val{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--text);margin-top:6px;letter-spacing:-.5px;}
+  .kpi .k-sub{font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:4px;}
+  .kpi .k-sub.dn{color:var(--red);}.kpi .k-sub.up{color:var(--green);}
+  .chart-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .chart-head .ch-title{font-family:var(--serif);font-size:18px;font-weight:600;}
+  .chart-head .ch-meta{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  svg.price-chart{width:100%;height:280px;display:block;}
+  .chart-legend{display:flex;gap:18px;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;flex-wrap:wrap;}
+  .chart-legend .lg{display:flex;align-items:center;gap:6px;}
+  .chart-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .section-head{display:flex;align-items:center;gap:16px;margin:34px 0 14px;}
+  .section-head h2{font-family:var(--serif);font-weight:600;font-size:20px;letter-spacing:-.3px;}
+  .section-head .sh-rule{flex:1;height:1px;background:linear-gradient(90deg, var(--line-2), transparent);}
+  .section-head .sh-tag{font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;}
+  .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  @media (max-width:780px){.card-grid{grid-template-columns:repeat(2,1fr);}}
+  .mcard{background:var(--bg-3);border:1px solid var(--line);border-left:3px solid var(--line-2);padding:14px;border-radius:2px;}
+  .mcard.green{border-left-color:var(--green);background:linear-gradient(180deg, #0c1612 0%, var(--bg-3) 100%);}
+  .mcard.red{border-left-color:var(--red);background:linear-gradient(180deg, #16100f 0%, var(--bg-3) 100%);}
+  .mcard.amber{border-left-color:var(--amber);background:linear-gradient(180deg, #161108 0%, var(--bg-3) 100%);}
+  .mc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .mc-name{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .mc-flag{font-family:var(--mono);font-size:9px;font-weight:600;padding:2px 6px;border-radius:1px;letter-spacing:1px;}
+  .mc-flag.green{background:var(--green-soft);color:var(--green);}
+  .mc-flag.red{background:var(--red-soft);color:var(--red);}
+  .mc-flag.amber{background:var(--amber-soft);color:var(--amber);}
+  .mc-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);margin-top:8px;letter-spacing:-.5px;}
+  .mc-bench{font-family:var(--mono);font-size:10.5px;color:var(--text-2);margin-top:3px;}
+  .mc-note{font-size:11.5px;color:var(--text-2);line-height:1.5;margin-top:8px;}
+  .breakdown{margin-top:20px;}
+  .bd-row{display:grid;grid-template-columns:120px 1fr 60px 50px;gap:14px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);}
+  .bd-row:last-child{border-bottom:none;}
+  .bd-label{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-2);}
+  .bd-bar{height:8px;background:var(--line);border-radius:1px;overflow:hidden;}
+  .bd-bar > div{height:100%;border-radius:1px;}
+  .bd-bar.high > div{background:linear-gradient(90deg, var(--red), #ff8a5b);}
+  .bd-bar.mid > div{background:linear-gradient(90deg, var(--amber), #ffd685);}
+  .bd-bar.low > div{background:linear-gradient(90deg, var(--green), #8be9c4);}
+  .bd-score{font-family:var(--mono);font-size:13px;font-weight:600;text-align:right;color:var(--text);}
+  .bd-weight{font-family:var(--mono);font-size:10px;color:var(--text-3);text-align:right;letter-spacing:1px;}
+  .page-no{position:absolute;top:10px;right:14px;font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:2px;}
+  .qtable{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;}
+  .qtable th,.qtable td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);}
+  .qtable th:first-child,.qtable td:first-child{text-align:left;}
+  .qtable th{font-size:9.5px;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;font-weight:500;background:#0a0c11;border-bottom:1px solid var(--line-2);}
+  .qtable td{color:var(--text-2);}.qtable td:first-child{color:var(--text);font-weight:500;}
+  .qtable .pos{color:var(--green);}.qtable .neg{color:var(--red);}
+  .qtable tr.latest td{background:#0d1118;color:var(--text);font-weight:600;}
+  .qtable tr.latest td:first-child{color:var(--sun);}
+  .earn-card{background:linear-gradient(135deg, #0e1219 0%, var(--bg-3) 100%);border:1px solid var(--line);padding:20px;border-radius:2px;}
+  .earn-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
+  .earn-head h3{font-family:var(--serif);font-size:18px;font-weight:600;}
+  .earn-head .tag{font-family:var(--mono);font-size:9px;color:var(--green);letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--green);padding:2px 6px;}
+  .earn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;}
+  .eg-lbl{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .eg-val{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--text);margin-top:4px;}
+  .eg-sub{font-family:var(--mono);font-size:10px;margin-top:2px;}
+  .earn-body{font-size:12.5px;color:var(--text-2);line-height:1.6;border-top:1px dashed var(--line);padding-top:12px;}
+  .earn-body b{color:var(--text);font-weight:500;}
+  .dual{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:780px){.dual{grid-template-columns:1fr;}}
+  .col-cat,.col-risk{padding:18px;border:1px solid var(--line);border-radius:2px;}
+  .col-cat{background:linear-gradient(180deg, #0c1612 0%, var(--bg-3) 100%);border-top:2px solid var(--green);}
+  .col-risk{background:linear-gradient(180deg, #16100f 0%, var(--bg-3) 100%);border-top:2px solid var(--red);}
+  .col-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
+  .col-head h3{font-family:var(--serif);font-size:17px;font-weight:600;}
+  .col-cat .col-head h3{color:var(--green);}.col-risk .col-head h3{color:var(--red);}
+  .col-head .ct{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.5px;}
+  .pt{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);}
+  .pt:last-child{border-bottom:none;}
+  .pt .pt-n{font-family:var(--mono);font-size:10px;color:var(--text-3);}
+  .pt .pt-t{font-size:12.5px;color:var(--text-2);line-height:1.5;}
+  .pt .pt-t b{color:var(--text);font-weight:500;}
+  .expert-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  @media (max-width:780px){.expert-grid{grid-template-columns:repeat(2,1fr);}}
+  .ex{border:1px solid var(--line);padding:12px;background:var(--bg-3);border-radius:2px;border-top:2px solid var(--text-3);}
+  .ex.buy{border-top-color:var(--green);}.ex.sell{border-top-color:var(--red);}.ex.hold{border-top-color:var(--amber);}
+  .ex-broker{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  .ex-call{font-family:var(--mono);font-size:11px;font-weight:600;margin-top:6px;letter-spacing:1.5px;}
+  .ex.buy .ex-call{color:var(--green);}.ex.sell .ex-call{color:var(--red);}.ex.hold .ex-call{color:var(--amber);}
+  .ex-tp{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:6px;letter-spacing:-.3px;}
+  .ex-up{font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:2px;}
+  .ind{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:780px){.ind{grid-template-columns:1fr;}}
+  .ind-block{padding:16px;border:1px solid var(--line);background:var(--bg-3);border-radius:2px;}
+  .ind-block h4{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:10px;}
+  .ind-row{display:flex;justify-content:space-between;padding:7px 0;font-family:var(--mono);font-size:11px;border-bottom:1px dashed var(--line);}
+  .ind-row:last-child{border-bottom:none;}
+  .ind-row .l{color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  .ind-row .v{color:var(--text);font-weight:600;}
+  .verdict{margin-top:24px;background:linear-gradient(135deg, #0e1219 0%, #0a0c11 100%);border:1px solid var(--line);border-radius:2px;padding:24px;position:relative;overflow:hidden;}
+  .verdict::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 200px at 100% 0%, rgba(255,210,63,.06), transparent 60%);pointer-events:none;}
+  .verdict-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;position:relative;}
+  .verdict-head h3{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.3px;}
+  .verdict-head .vh-tag{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--sun);text-transform:uppercase;border:1px solid var(--sun);padding:3px 8px;}
+  .rating-bar{margin:14px 0 16px;position:relative;}
+  .rb-track{height:32px;background:linear-gradient(90deg, var(--red) 0%, #ff8a5b 25%, var(--amber) 50%, #8be9c4 75%, var(--green) 100%);border-radius:2px;position:relative;}
+  .rb-marker{position:absolute;top:-6px;bottom:-6px;width:3px;background:var(--text);box-shadow:0 0 0 2px var(--bg);}
+  .rb-marker::after{content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border:6px solid transparent;border-top-color:var(--text);}
+  .rb-labels{display:flex;justify-content:space-between;margin-top:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;}
+  .verdict-text{font-size:13.5px;color:var(--text-2);line-height:1.65;}
+  .verdict-text b{color:var(--text);font-weight:500;}
+  .verdict-text .tag{display:inline-block;padding:1px 6px;font-family:var(--mono);font-size:10px;letter-spacing:1px;background:var(--amber-soft);color:var(--amber);border-radius:1px;margin:0 2px;}
+  .verdict-text .tag.r{background:var(--red-soft);color:var(--red);}
+  .verdict-text .tag.g{background:var(--green-soft);color:var(--green);}
+  .actions{margin-top:24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:18px;border-top:1px solid var(--line);}
+  .disclaim{font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:.8px;line-height:1.6;max-width:780px;}
+  .copy-btn{background:transparent;color:var(--sun);border:1px solid var(--sun);font-family:var(--mono);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;padding:10px 18px;cursor:pointer;border-radius:2px;transition:all .2s;}
+  .copy-btn:hover{background:var(--sun);color:var(--bg);}.copy-btn.copied{background:var(--green);color:var(--bg);border-color:var(--green);}
+  .micro{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<section class="page">
+  <span class="page-no">PG 01 / 02</span>
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="ticker-block"><span class="ticker">WAAREEENER</span><span class="exchange">NSE &bull; 544277</span></div>
+      <span class="company">Waaree Energies Ltd &middot; India's #1 Solar PV Module Manufacturer</span>
+    </div>
+    <div class="price-block"><span class="ltp">&#8377;3,215</span><span class="chg up">+1Y +14.0%</span></div>
+  </div>
+  <div class="topbar" style="border-top:0;border-bottom:1px solid var(--line);padding-top:8px;padding-bottom:8px;">
+    <div class="meta"><span>SECTOR <b>RENEWABLE ENERGY</b></span><span>SUB <b>SOLAR MODULES</b></span><span>ISIN <b>INE377N01017</b></span><span>BETA <b>1.55</b></span></div>
+    <div class="meta"><span>AS OF <b>22-MAY-2026</b></span></div>
+  </div>
+
+  <div class="report-head">
+    <div>
+      <div class="report-title">Equity Risk &amp; Quality Report <em>&mdash; Post FY26</em></div>
+      <p class="report-sub">Independent assessment of Waaree Energies post Q4FY26 (Apr 30, 2026). India's largest solar module manufacturer doubled FY26 profit to &#8377;3,884 Cr on &#8377;26,537 Cr revenue. Order book &#8377;53,000 Cr (~2&times; FY26 revenue). But Q4 cash flows weakened materially and the stock fell 8% intraday on results &mdash; market sees something the headline doesn't show.</p>
+    </div>
+    <div class="stamp">
+      <div>Report ID &middot; <b>WAAREE &middot; RR-2205-FY26</b></div>
+      <div>Analyst &middot; <b>Harshit Gandhi</b></div>
+      <div>Coverage &middot; <b>Initiating</b></div>
+      <div>Currency &middot; <b>INR &#8377; (Cr)</b></div>
+    </div>
+  </div>
+
+  <div class="page-inner">
+    <div class="row two" style="margin-bottom:20px;">
+      <div class="panel">
+        <div class="panel-label"><span>Composite Risk Score</span><span class="pl-tag">SCALE 0&rarr;100</span></div>
+        <div class="gauge-wrap">
+          <div class="gauge">
+            <svg viewBox="0 0 200 120">
+              <path d="M 20 110 A 80 80 0 0 1 60 41.2" stroke="#1a3a2a" stroke-width="14" fill="none"/><path d="M 60 41.2 A 80 80 0 0 1 100 30" stroke="#2a3a1a" stroke-width="14" fill="none"/><path d="M 100 30 A 80 80 0 0 1 140 41.2" stroke="#3a2e10" stroke-width="14" fill="none"/><path d="M 140 41.2 A 80 80 0 0 1 180 110" stroke="#3a1418" stroke-width="14" fill="none"/>
+              <path d="M 20 110 A 80 80 0 0 1 130 32.4" stroke="url(#gg)" stroke-width="14" fill="none" stroke-linecap="round"/>
+              <defs><linearGradient id="gg" x1="0" x2="1"><stop offset="0" stop-color="#3ddc97"/><stop offset=".55" stop-color="#ffb547"/><stop offset="1" stop-color="#ff5470"/></linearGradient></defs>
+              <line x1="100" y1="110" x2="130" y2="32.4" stroke="#e6e8ee" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="100" cy="110" r="6" fill="#08090d" stroke="#e6e8ee" stroke-width="2"/>
+              <text x="14" y="118" font-family="JetBrains Mono" font-size="8" fill="#5a6071">0</text><text x="92" y="22" font-family="JetBrains Mono" font-size="8" fill="#5a6071">50</text><text x="178" y="118" font-family="JetBrains Mono" font-size="8" fill="#5a6071">100</text>
+            </svg>
+            <div class="gauge-num"><div class="n">63</div><div class="max">/ 100</div><div class="gauge-band">&#9660; ELEVATED</div></div>
+          </div>
+          <div class="gauge-side">
+            <div class="gs-title">India's Solar Crown, Cash Flow Crack</div>
+            <div class="gs-sub">FY26 PAT doubled (&#8377;3,884 Cr), revenue +84% to &#8377;26,537 Cr, order book &#8377;53,000 Cr. But Q4 cash flow weakened, margins under pressure (raw material costs rising), and stock fell 8% on results day. P/E ~22&times; on FY26 is reasonable, but FY27 guidance EBITDA of &#8377;7,000-7,700 Cr implies muted growth.</div>
+            <div class="gs-meta"><span>VAL <b style="color:var(--amber);">58</b></span><span>HEALTH <b style="color:var(--amber);">62</b></span><span>GROWTH <b style="color:var(--amber);">52</b></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-label"><span>Snapshot &middot; Key Metrics</span><span class="pl-tag">CONSOL &middot; TTM</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+          <div class="kpi"><div class="k-label">Market Cap</div><div class="k-val">&#8377;92,400 Cr</div><div class="k-sub">~US$ 11.1 B</div></div>
+          <div class="kpi"><div class="k-label">P/E (TTM)</div><div class="k-val">~23&times;</div><div class="k-sub up">Reasonable for growth</div></div>
+          <div class="kpi"><div class="k-label">P/B</div><div class="k-val">~7.2&times;</div><div class="k-sub dn">Stretched</div></div>
+          <div class="kpi"><div class="k-label">FY26 PAT</div><div class="k-val">&#8377;3,884 Cr</div><div class="k-sub up">+100% YoY</div></div>
+          <div class="kpi"><div class="k-label">52W Range</div><div class="k-val">&#8377;1,808&ndash;3,740</div><div class="k-sub">14% off ATH</div></div>
+          <div class="kpi"><div class="k-label">1Y Return</div><div class="k-val" style="color:var(--green);">+14%</div><div class="k-sub">Recovered from Apr low</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="chart-head"><div class="ch-title">12-Month Price Trajectory <span style="font-family:var(--mono);font-weight:400;font-size:11px;color:var(--text-3);letter-spacing:1px;">&middot; MAY 25 &rarr; MAY 26</span></div><div class="ch-meta">CLOSE &middot; NSE</div></div>
+      <svg class="price-chart" viewBox="0 0 1200 280" preserveAspectRatio="none">
+        <defs><linearGradient id="ag" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffd23f" stop-opacity=".22"/><stop offset="1" stop-color="#ffd23f" stop-opacity="0"/></linearGradient></defs>
+        <g stroke="#1d212c" stroke-width="1" stroke-dasharray="2,4"><line x1="0" y1="40" x2="1200" y2="40"/><line x1="0" y1="90" x2="1200" y2="90"/><line x1="0" y1="140" x2="1200" y2="140"/><line x1="0" y1="190" x2="1200" y2="190"/><line x1="0" y1="240" x2="1200" y2="240"/></g>
+        <g font-family="JetBrains Mono" font-size="9" fill="#5a6071"><text x="6" y="44">3800</text><text x="6" y="94">3300</text><text x="6" y="144">2800</text><text x="6" y="194">2300</text><text x="6" y="244">1800</text></g>
+        <g font-family="JetBrains Mono" font-size="9" fill="#5a6071" text-anchor="middle"><text x="50" y="262">MAY</text><text x="142" y="262">JUN</text><text x="234" y="262">JUL</text><text x="326" y="262">AUG</text><text x="418" y="262">SEP</text><text x="510" y="262">OCT</text><text x="602" y="262">NOV</text><text x="694" y="262">DEC</text><text x="786" y="262">JAN</text><text x="878" y="262">FEB</text><text x="970" y="262">MAR</text><text x="1062" y="262">APR</text><text x="1154" y="262">MAY</text></g>
+        <!-- Waaree: ~2820 May'25, dipped to 1808 (52W low Apr 25 actually), recovery, peak ~3600 Sep, dip ~2700 Jan, ~2940 Feb, 2750 Mar, 3100 Apr, 3215 May -->
+        <!-- Using updated 12M: 2820, 2600, 2200, 1808, 2400, 3200, 3597, 3400, 2700, 2940, 2750, 3100, 3215 -->
+        <!-- y = 240 - ((price-1800)/2000)*200 -->
+        <!-- 2820:138; 2600:160; 2200:200; 1808:239; 2400:180; 3200:100; 3597:60; 3400:80; 2700:150; 2940:126; 2750:145; 3100:110; 3215:99 -->
+        <path d="M 50 138 L 142 160 L 234 200 L 326 239 L 418 180 L 510 100 L 602 60 L 694 80 L 786 150 L 878 126 L 970 145 L 1062 110 L 1154 99 L 1154 240 L 50 240 Z" fill="url(#ag)"/>
+        <polyline points="50,138 142,160 234,200 326,239 418,180 510,100 602,60 694,80 786,150 878,126 970,145 1062,110 1154,99" fill="none" stroke="#ffd23f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+        <g><circle cx="326" cy="239" r="5" fill="#ff5470" stroke="#08090d" stroke-width="2"/><text x="326" y="232" font-family="JetBrains Mono" font-size="9" fill="#ff5470" text-anchor="middle">52W LOW &#8377;1,808</text></g>
+        <g><circle cx="602" cy="60" r="5" fill="#3ddc97" stroke="#08090d" stroke-width="2"/><text x="602" y="50" font-family="JetBrains Mono" font-size="9" fill="#3ddc97" text-anchor="middle">52W HIGH &#8377;3,597</text></g>
+        <g><circle cx="694" cy="80" r="5" fill="#7cc1ff" stroke="#08090d" stroke-width="2"/><text x="694" y="72" font-family="JetBrains Mono" font-size="9" fill="#7cc1ff" text-anchor="middle">$176M US ORDER</text></g>
+        <g><circle cx="1062" cy="110" r="5" fill="#ffb547" stroke="#08090d" stroke-width="2"/><text x="1062" y="100" font-family="JetBrains Mono" font-size="9" fill="#ffb547" text-anchor="middle">Q4 PRINT &middot; &minus;8%</text></g>
+      </svg>
+      <div class="chart-legend"><span class="lg"><span class="dot" style="background:#ffd23f;"></span>WAAREE</span><span class="lg"><span class="dot" style="background:#3ddc97;"></span>52W HIGH</span><span class="lg"><span class="dot" style="background:#ff5470;"></span>52W LOW</span><span class="lg"><span class="dot" style="background:#7cc1ff;"></span>ORDER WIN</span><span class="lg"><span class="dot" style="background:#ffb547;"></span>EARNINGS</span></div>
+    </div>
+
+    <div class="section-head"><h2>Valuation</h2><div class="sh-rule"></div><span class="sh-tag">06 METRICS &middot; SOLAR PEERS</span></div>
+    <div class="card-grid">
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">P/E (TTM)</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">~23&times;</div><div class="mc-bench">Sector: 24&times; &middot; Premier: 33&times;</div><div class="mc-note">Cheapest on P/E within solar peers. Reflects market skepticism on FY27 growth guidance.</div></div>
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">P/B</span><span class="mc-flag red">MISS</span></div><div class="mc-val">~7.2&times;</div><div class="mc-bench">Sector: 4.5&times;</div><div class="mc-note">Premium book multiple. Justified historically by ROE, but ROE will compress as base equity grows.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">EV / EBITDA</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">~16&times;</div><div class="mc-bench">Sector: 14&times;</div><div class="mc-note">In line with global solar. Becomes attractive if EBITDA guidance of &#8377;7,000-7,700 Cr delivers.</div></div>
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">PEG (FWD)</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">~0.5&times;</div><div class="mc-bench">Excellent &middot; &lt;1&times;</div><div class="mc-note">Best PEG of any stock in this report set. Earnings doubled; multiple did not. Genuine value angle.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">Dividend Yield</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">0.06%</div><div class="mc-bench">FY26 DPS: &#8377;2.00</div><div class="mc-note">Symbolic. All capital reinvested in 15+ GW capacity expansion.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">Mcap / Sales</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">3.5&times;</div><div class="mc-bench">Sector: 3.2&times; &middot; Premier: 5.7&times;</div><div class="mc-note">In-line on sales. Significantly cheaper than Premier on revenue basis.</div></div>
+    </div>
+
+    <div class="section-head"><h2>Financial Health</h2><div class="sh-rule"></div><span class="sh-tag">06 METRICS</span></div>
+    <div class="card-grid">
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Debt / Equity</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">0.28&times;</div><div class="mc-bench">Among the cleanest in solar</div><div class="mc-note">Oct-2024 IPO money cleaned debt. Even with capex, leverage remains comfortable.</div></div>
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Interest Coverage</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">~16&times;</div><div class="mc-bench">Very strong</div><div class="mc-note">Cash flow comfortably covers capex servicing. Conservative capital allocation.</div></div>
+      <div class="mcard red"><div class="mc-top"><span class="mc-name">CFO / EBITDA</span><span class="mc-flag red">MISS</span></div><div class="mc-val">~45%</div><div class="mc-bench">Healthy: &gt;70%</div><div class="mc-note"><b>Critical concern.</b> Cash flow weakened materially in FY26. Working capital tied up in inventory and receivables. Stock reaction reflected this.</div></div>
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Promoter Holding</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">~64%</div><div class="mc-bench">Doshi family &middot; stable</div><div class="mc-note">No pledge, no recent reductions. Founding family commitment intact.</div></div>
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">FII Holding</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">~12%</div><div class="mc-bench">Higher than Premier (~7%)</div><div class="mc-note">Stronger institutional anchor than peers. Reflects scale and visibility.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">ROE</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">~32%</div><div class="mc-bench">Strong &middot; will compress</div><div class="mc-note">Stellar today. As equity base grows from retained earnings, ROE naturally normalises lower (long-term ~18-22%).</div></div>
+    </div>
+
+    <div class="section-head"><h2>Growth</h2><div class="sh-rule"></div><span class="sh-tag">06 METRICS &middot; FY26</span></div>
+    <div class="card-grid">
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Q4 Revenue YoY</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">+111.79%</div><div class="mc-bench">Q4 &#8377;8,480 Cr &middot; record</div><div class="mc-note">Revenue more than doubled YoY in Q4. Best quarterly print ever.</div></div>
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Q4 PAT YoY</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">+71.4%</div><div class="mc-bench">Q4 PAT &#8377;1,061 Cr</div><div class="mc-note">Strong PAT growth, but lagged revenue growth (+112%) &mdash; margin compression.</div></div>
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">FY26 PAT YoY</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">+100%</div><div class="mc-bench">FY26 PAT &#8377;3,884 Cr vs &#8377;1,928 Cr</div><div class="mc-note">Profit doubled. Best in solar peer group on absolute scale.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">FY27 EBITDA Guide</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">&#8377;7-7.7K Cr</div><div class="mc-bench">FY26 EBITDA: &#8377;~4,640 Cr</div><div class="mc-note">Implies ~50-65% EBITDA growth. Aggressive but achievable. The stock isn't pricing it in.</div></div>
+      <div class="mcard green"><div class="mc-top"><span class="mc-name">Order Book</span><span class="mc-flag green">BEAT</span></div><div class="mc-val">&#8377;53,000 Cr</div><div class="mc-bench">~2&times; FY26 revenue</div><div class="mc-note">Pipeline of 100+ GW. Multi-year visibility. Largest in Indian solar.</div></div>
+      <div class="mcard amber"><div class="mc-top"><span class="mc-name">Revenue Mix</span><span class="mc-flag amber">CAUTION</span></div><div class="mc-val">Diversified</div><div class="mc-bench">Util 34.7% / Overseas 33% / Retail 20.8%</div><div class="mc-note">Retail (B2C) +84% to &#8377;5,515 Cr. Diversification is the structural strength.</div></div>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <div class="panel-label"><span>Score Breakdown</span><span class="pl-tag">VAL 35 / HEALTH 35 / GROWTH 30</span></div>
+      <div class="breakdown">
+        <div class="bd-row"><div class="bd-label">Valuation</div><div class="bd-bar mid"><div style="width:58%"></div></div><div class="bd-score">58</div><div class="bd-weight">&times;0.35</div></div>
+        <div class="bd-row"><div class="bd-label">Fin. Health</div><div class="bd-bar high"><div style="width:62%"></div></div><div class="bd-score">62</div><div class="bd-weight">&times;0.35</div></div>
+        <div class="bd-row"><div class="bd-label">Growth</div><div class="bd-bar mid"><div style="width:52%"></div></div><div class="bd-score">52</div><div class="bd-weight">&times;0.30</div></div>
+        <div class="bd-row" style="border-top:1px solid var(--line-2);padding-top:14px;border-bottom:none;"><div class="bd-label" style="color:var(--sun);">COMPOSITE</div><div class="bd-bar"><div style="width:63%;background:linear-gradient(90deg,var(--accent),var(--sun));"></div></div><div class="bd-score" style="color:var(--sun);font-size:16px;">63</div><div class="bd-weight">/ 100</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="page">
+  <span class="page-no">PG 02 / 02</span>
+  <div class="report-head">
+    <div><div class="report-title">Operating Detail <em>&amp; Verdict</em></div><p class="report-sub">Quarterly trajectory, Q4FY26 print, dual-column thesis, sell-side, industry positioning, and the bottom-line call.</p></div>
+    <div class="stamp"><div>WAAREE &middot; <b>NSE 544277</b></div><div>CMP &middot; <b>&#8377;3,215</b></div><div>RISK &middot; <b style="color:var(--amber);">63 / 100</b></div><div>CALL &middot; <b style="color:var(--amber);">HOLD &middot; CONDITIONAL ACCUMULATE</b></div></div>
+  </div>
+
+  <div class="page-inner">
+    <div class="panel">
+      <div class="panel-label"><span>Quarterly Trend &middot; Consolidated</span><span class="pl-tag">LAST 6 QTRS &middot; &#8377; Cr</span></div>
+      <table class="qtable">
+        <thead><tr><th>Quarter</th><th>Revenue</th><th>EBITDA</th><th>EBITDA %</th><th>PAT</th><th>EPS (&#8377;)</th><th>YoY PAT</th></tr></thead>
+        <tbody>
+          <tr><td>Q3FY25 &middot; Dec'24</td><td>3,640</td><td>720</td><td>19.8%</td><td>506</td><td>17.6</td><td class="pos">+115%</td></tr>
+          <tr><td>Q4FY25 &middot; Mar'25</td><td>4,004</td><td>820</td><td>20.5%</td><td>619</td><td>21.6</td><td class="pos">+34%</td></tr>
+          <tr><td>Q1FY26 &middot; Jun'25</td><td>4,597</td><td>1,169</td><td>25.4%</td><td>773</td><td>26.9</td><td class="pos">+93%</td></tr>
+          <tr><td>Q2FY26 &middot; Sep'25</td><td>5,460</td><td>1,250</td><td>22.9%</td><td>895</td><td>31.1</td><td class="pos">+103%</td></tr>
+          <tr><td>Q3FY26 &middot; Dec'25</td><td>8,000</td><td>1,560</td><td>19.5%</td><td>1,155</td><td>40.2</td><td class="pos">+128%</td></tr>
+          <tr class="latest"><td>Q4FY26 &middot; Mar'26</td><td>8,480</td><td>1,660</td><td>19.6%</td><td>1,061</td><td>36.9</td><td class="pos">+71%</td></tr>
+        </tbody>
+      </table>
+      <div class="micro" style="margin-top:10px;color:var(--text-3);">Q4 EBITDA margin compressed to 19.6% from Q1FY26 peak of 25.4% &mdash; ~600 bps decline reflects raw material cost pressure and competitive pricing. FY26 module production crossed milestones at multiple facilities.</div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <div class="earn-card">
+        <div class="earn-head"><h3>Q4FY26 / FY26 Earnings &middot; 30-Apr-2026</h3><span class="tag">RECORD YEAR &middot; CASH FLOW CRACK</span></div>
+        <div class="earn-grid">
+          <div><div class="eg-lbl">FY26 Revenue</div><div class="eg-val">&#8377;26,537 Cr</div><div class="eg-sub" style="color:var(--green);">+84% YoY</div></div>
+          <div><div class="eg-lbl">FY26 PAT</div><div class="eg-val">&#8377;3,884 Cr</div><div class="eg-sub" style="color:var(--green);">+100% YoY</div></div>
+          <div><div class="eg-lbl">Q4 Revenue</div><div class="eg-val">&#8377;8,480 Cr</div><div class="eg-sub" style="color:var(--green);">+112% YoY</div></div>
+          <div><div class="eg-lbl">Final Dividend</div><div class="eg-val">&#8377;2/sh</div><div class="eg-sub" style="color:var(--text-3);">Maintenance level</div></div>
+        </div>
+        <div class="earn-body">
+          <b>Print quality:</b> Headline numbers are extraordinary. FY26 revenue +84% to &#8377;26,537 Cr; PAT doubled to &#8377;3,884 Cr. Q4 revenue doubled YoY at &#8377;8,480 Cr. India's largest non-Chinese module manufacturer with 15 GW module + 5.4 GW cell installed capacity. Order book &#8377;53,000 Cr (~2&times; revenue) with pipeline exceeding 100 GW.
+          <br><br>
+          <b>What broke the headline reaction (stock fell 8% intraday):</b> (1) <b>Cash flow weakened significantly</b> &mdash; the FY26 jump in receivables and inventory consumed cash even as accounting profit doubled; (2) <b>Q4 EBITDA margin held at 19.6%</b> vs Q1FY26 peak of 25.4%, indicating sustained pricing pressure; (3) <b>Total expenses rose to &#8377;21,898 Cr</b> driven by raw material costs.
+          <br><br>
+          <b>FY27 guidance:</b> Operating EBITDA range &#8377;7,000-7,700 Cr (from CEO Jignesh Rathod). Implies ~50-65% EBITDA growth from FY26's ~&#8377;4,640 Cr. Aggressive guide; if delivered, the stock is materially cheap. If missed, the multiple compresses sharply.
+          <br><br>
+          <b>Revenue mix:</b> Utility &amp; IPP projects 34.7%, overseas 33%, retail/B2C 20.8% (rose 84% to &#8377;5,515 Cr), EPC 11.6%. B2C scale is genuinely differentiating &mdash; better margin profile and stickier customer relationships than peers.
+          <br><br>
+          <b>US exposure:</b> Waaree Solar Americas (subsidiary) won $176M order for 586 MW modules in May 2025; deliveries start FY27. The US push provides geographic diversification that Premier Energies lacks.
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head"><h2>Thesis &middot; Catalysts vs Risks</h2><div class="sh-rule"></div><span class="sh-tag">BULL vs BEAR</span></div>
+    <div class="dual">
+      <div class="col-cat">
+        <div class="col-head"><h3>&#9650; Catalysts</h3><span class="ct">BULL CASE</span></div>
+        <div class="pt"><span class="pt-n">01</span><span class="pt-t"><b>India's #1 module maker.</b> 15 GW installed (largest non-Chinese globally), scaling toward 21+ GW.</span></div>
+        <div class="pt"><span class="pt-n">02</span><span class="pt-t"><b>Order book &#8377;53,000 Cr.</b> 2&times; FY26 revenue. Best visibility in Indian solar.</span></div>
+        <div class="pt"><span class="pt-n">03</span><span class="pt-t"><b>Diversified mix.</b> Utility 35% + overseas 33% + retail 21% + EPC 12%. Cyclical risk lower than pure exporters.</span></div>
+        <div class="pt"><span class="pt-n">04</span><span class="pt-t"><b>US manufacturing entry.</b> Texas facility supplying premium US market. Geographic hedge.</span></div>
+        <div class="pt"><span class="pt-n">05</span><span class="pt-t"><b>FY27 EBITDA guide.</b> Mgmt at &#8377;7,000-7,700 Cr. If delivered, FY27 PAT could be ~&#8377;5,500-6,000 Cr.</span></div>
+        <div class="pt"><span class="pt-n">06</span><span class="pt-t"><b>PEG ~0.5&times;.</b> Best PEG among all stocks reviewed. Growth pricing not stretched.</span></div>
+        <div class="pt"><span class="pt-n">07</span><span class="pt-t"><b>B2C scale advantage.</b> Retail (rooftop) +84% to &#8377;5,515 Cr &mdash; better margins, stickier customers.</span></div>
+        <div class="pt"><span class="pt-n">08</span><span class="pt-t"><b>FII anchor (~12%).</b> Strongest institutional confidence in the solar peer set.</span></div>
+      </div>
+      <div class="col-risk">
+        <div class="col-head"><h3>&#9660; Risks</h3><span class="ct">BEAR CASE</span></div>
+        <div class="pt"><span class="pt-n">01</span><span class="pt-t"><b>Cash flow weakened.</b> CFO/EBITDA below 50% in FY26. Accounting profit not converting to cash.</span></div>
+        <div class="pt"><span class="pt-n">02</span><span class="pt-t"><b>EBITDA margin compression.</b> 25.4% (Q1FY26) &rarr; 19.6% (Q4FY26). ~600 bps in 9 months.</span></div>
+        <div class="pt"><span class="pt-n">03</span><span class="pt-t"><b>India sector oversupply by FY28.</b> Domestic capacity will overshoot demand 4&times;. Pricing pressure inevitable.</span></div>
+        <div class="pt"><span class="pt-n">04</span><span class="pt-t"><b>Chinese spillover.</b> Global module prices down 50%+ in 18 months. ALMM protection won't last forever.</span></div>
+        <div class="pt"><span class="pt-n">05</span><span class="pt-t"><b>Raw material cost volatility.</b> Polysilicon &amp; wafer prices. Margin sensitivity high.</span></div>
+        <div class="pt"><span class="pt-n">06</span><span class="pt-t"><b>Capacity ramp execution.</b> Multiple greenfield projects simultaneously &mdash; cost overruns possible.</span></div>
+        <div class="pt"><span class="pt-n">07</span><span class="pt-t"><b>US trade policy.</b> Tariffs on India-origin solar could impact Texas plant's economics.</span></div>
+        <div class="pt"><span class="pt-n">08</span><span class="pt-t"><b>Tech disruption.</b> N-type TOPCon, HJT, perovskite tandems require fresh capex cycles every 3-5 years.</span></div>
+      </div>
+    </div>
+
+    <div class="section-head"><h2>Street View</h2><div class="sh-rule"></div><span class="sh-tag">SELL-SIDE CONSENSUS</span></div>
+    <div class="expert-grid">
+      <div class="ex buy"><div class="ex-broker">JM Financial</div><div class="ex-call">BUY</div><div class="ex-tp">&#8377;3,850</div><div class="ex-up">Upside +20%</div></div>
+      <div class="ex buy"><div class="ex-broker">Motilal Oswal</div><div class="ex-call">BUY</div><div class="ex-tp">&#8377;3,700</div><div class="ex-up">Upside +15%</div></div>
+      <div class="ex buy"><div class="ex-broker">Goldman Sachs</div><div class="ex-call">BUY</div><div class="ex-tp">&#8377;3,650</div><div class="ex-up">Upside +14%</div></div>
+      <div class="ex buy"><div class="ex-broker">Citi</div><div class="ex-call">BUY</div><div class="ex-tp">&#8377;3,500</div><div class="ex-up">Upside +9%</div></div>
+      <div class="ex hold"><div class="ex-broker">Antique</div><div class="ex-call">HOLD</div><div class="ex-tp">&#8377;3,200</div><div class="ex-up">Flat</div></div>
+      <div class="ex sell"><div class="ex-broker">Bear Case</div><div class="ex-call">SELL</div><div class="ex-tp">&#8377;2,400</div><div class="ex-up">&minus;25% &middot; oversupply</div></div>
+      <div class="ex buy"><div class="ex-broker">Bull Case</div><div class="ex-call">BUY</div><div class="ex-tp">&#8377;4,500</div><div class="ex-up">+40% &middot; FY27 EBITDA delivery</div></div>
+      <div class="ex hold"><div class="ex-broker">Desk Call</div><div class="ex-call">HOLD &middot; ADD</div><div class="ex-tp">&#8377;3,400</div><div class="ex-up">Conditional accumulate</div></div>
+    </div>
+
+    <div class="section-head"><h2>Industry Context</h2><div class="sh-rule"></div><span class="sh-tag">GLOBAL + INDIA SOLAR</span></div>
+    <div class="ind">
+      <div class="ind-block">
+        <h4>India Solar Module Manufacturing</h4>
+        <div class="ind-row"><span class="l">Domestic capacity FY26</span><span class="v">~85 GW</span></div>
+        <div class="ind-row"><span class="l">Projected FY28</span><span class="v">~150 GW</span></div>
+        <div class="ind-row"><span class="l">Domestic demand FY28e</span><span class="v">~30&ndash;35 GW</span></div>
+        <div class="ind-row"><span class="l">Surplus ratio</span><span class="v" style="color:var(--red);">~4&times;</span></div>
+        <div class="ind-row"><span class="l">Waaree share (modules)</span><span class="v" style="color:var(--sun);">~18%</span></div>
+        <div class="ind-row"><span class="l">Waaree rank</span><span class="v">#1 India &middot; Top 10 global</span></div>
+      </div>
+      <div class="ind-block">
+        <h4>Global Solar Module Market</h4>
+        <div class="ind-row"><span class="l">Global module shipments 2026</span><span class="v">~600 GW</span></div>
+        <div class="ind-row"><span class="l">Projected 2030</span><span class="v">~900 GW</span></div>
+        <div class="ind-row"><span class="l">CAGR 2026&ndash;30</span><span class="v" style="color:var(--green);">~10.7%</span></div>
+        <div class="ind-row"><span class="l">Chinese share</span><span class="v">~80%</span></div>
+        <div class="ind-row"><span class="l">Waaree global share</span><span class="v">~2.5%</span></div>
+        <div class="ind-row"><span class="l">Largest non-Chinese maker</span><span class="v" style="color:var(--sun);">Waaree</span></div>
+      </div>
+    </div>
+
+    <div class="verdict">
+      <div class="verdict-head"><h3>Bottom Line</h3><span class="vh-tag">FINAL CALL</span></div>
+      <div class="rating-bar"><div class="rb-track"><div class="rb-marker" style="left:58%;"></div></div><div class="rb-labels"><span>STRONG SELL</span><span>SELL</span><span>HOLD</span><span>ACCUMULATE</span><span>STRONG BUY</span></div></div>
+      <div class="verdict-text">
+        <b>Rating: HOLD &middot; Conditional ACCUMULATE on dips to &#8377;2,900&ndash;3,000.</b>
+        <br><br>
+        Waaree is the strongest fundamental case in this 7-stock set after Bharti Airtel. India's #1 module maker by scale, largest non-Chinese globally, profit doubled in FY26, &#8377;53,000 Cr order book, FII anchor strongest in solar peer group, PEG ~0.5&times;. If you have to own one solar manufacturer, this is the one.
+        <br><br>
+        <b>The reasons I'm not screaming BUY:</b>
+        <br>(1) <b>Cash flow weakening</b> &mdash; the gap between accounting profit and operating cash flow widened materially in FY26. This is what spooked the market on results day.
+        <br>(2) <b>EBITDA margins compressed 600 bps</b> over 9 months. The Q4 print at 19.6% margin is the new floor, not an anomaly.
+        <br>(3) <b>FY27 EBITDA guide of &#8377;7,000-7,700 Cr is aggressive.</b> If achieved, the stock is cheap at &#8377;3,215. If missed by 15%+, the multiple compresses sharply.
+        <br>(4) <b>Sector capacity overhang.</b> India will have 4&times; surplus by FY28. Even the largest players take a margin hit.
+        <br><br>
+        <span class="tag g">PEG 0.5x</span><span class="tag g">ORDER BOOK 53,000 Cr</span><span class="tag g">FII 12%</span><span class="tag r">CFO/EBITDA 45%</span><span class="tag r">MARGIN &minus;600bps</span>
+        <br><br>
+        <b>Tactical playbook:</b>
+        <br>&bull; Existing holders &rarr; <span class="tag">HOLD</span>. The franchise is real; near-term volatility is the cost.
+        <br>&bull; Fresh money &rarr; <span class="tag g">ACCUMULATE</span> in tranches at &#8377;2,900&ndash;3,000 (~7-10% below CMP) and &#8377;2,500&ndash;2,600 (~17-22% below). Both zones have technical support.
+        <br>&bull; Trigger for upgrade to BUY &rarr; one clean quarter showing (i) EBITDA margin stable or up vs Q4FY26's 19.6%, (ii) CFO/EBITDA back above 60%, (iii) FY27 guide on-track at first half.
+        <br>&bull; <b>Hard stop &#8377;2,400</b> (below 200-DMA + sector overhang invalidation level).
+        <br><br>
+        <b>Position cap:</b> 3&ndash;4% of equity book. Best solar exposure for someone with 3-year horizon and tolerance for &plusmn;30% drawdowns. Pair with a cash-flow heavy compounder (like Bharti Airtel) to balance the cyclicality.
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="disclaim"><b>Disclaimer:</b> Educational analysis only. Author Harshit Gandhi is NOT a SEBI-registered Investment Adviser or Research Analyst. Not investment advice. Data sourced from BSE/NSE filings, Q4FY26 earnings call (30-Apr-2026), broker reports. Markets involve risk of capital loss. Consult a SEBI-registered adviser.</div>
+      <button class="copy-btn" id="copyBtn" onclick="copyReport()">&#8901; Copy Summary</button>
+    </div>
+  </div>
+</section>
+
+<script>
+function copyReport(){
+  const summary=`WAAREEENER | NSE 544277 | Risk Score Report
+CMP: Rs.3,215 | Mcap: Rs.92,400 Cr | RISK: 63/100
+P/E 23x | P/B 7.2x | PEG ~0.5x
+FY26 PAT: Rs.3,884 Cr (+100%)
+
+Q4FY26 (30-Apr-2026):
+- Revenue Rs.8,480 Cr (+111.79% YoY)
+- EBITDA Rs.1,660 Cr (19.6% margin)
+- PAT Rs.1,061 Cr (+71.4% YoY)
+- Order book Rs.53,000 Cr (2x revenue)
+- FY27 EBITDA guide: Rs.7,000-7,700 Cr
+
+STRENGTHS:
+- India's #1 module maker (15 GW)
+- Largest non-Chinese globally
+- Diversified mix (B2C +84%)
+- Best PEG in this report set
+- FII anchor strongest (~12%)
+
+WEAKNESSES:
+- CFO/EBITDA ~45% (cash flow crack)
+- EBITDA margin -600 bps in 9 months
+- Sector oversupply 4x by FY28
+- FY27 guide aggressive
+
+STREET:
+- Bull: JM Rs.3,850, MOSL Rs.3,700
+- Goldman Rs.3,650, Citi Rs.3,500
+- Antique HOLD Rs.3,200
+- Desk fair value: Rs.3,400
+
+VERDICT: HOLD | Accumulate Rs.2,900-3,000
+Stop: Rs.2,400 | Cap: 3-4%
+
+Report by Harshit Gandhi | EDUCATIONAL ONLY`;
+  navigator.clipboard.writeText(summary).then(()=>{
+    const btn=document.getElementById('copyBtn');btn.textContent='\u2713 Copied';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='\u22C5 Copy Summary';btn.classList.remove('copied');},2400);
+  });
+}
+</script>
+</body>
+</html>
