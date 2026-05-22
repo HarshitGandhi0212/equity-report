@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HFCL • Risk Score Report • FY26</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090d;
+    --bg-2:#0d0f15;
+    --bg-3:#11141c;
+    --line:#1d212c;
+    --line-2:#262b38;
+    --text:#e6e8ee;
+    --text-2:#9aa0ad;
+    --text-3:#5a6071;
+    --green:#3ddc97;
+    --green-soft:#10271f;
+    --red:#ff5470;
+    --red-soft:#2a121a;
+    --amber:#ffb547;
+    --amber-soft:#2a1e0e;
+    --accent:#7cc1ff;
+    --gold:#d4af37;
+    --copper:#cb6843;
+    --mono:'JetBrains Mono', ui-monospace, monospace;
+    --sans:'DM Sans', system-ui, sans-serif;
+    --serif:'Fraunces', Georgia, serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv11";}
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(124,193,255,.04), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(203,104,67,.04), transparent 50%),
+      linear-gradient(180deg, var(--bg) 0%, #06070b 100%);
+    min-height:100vh;
+    padding:24px 16px 80px;
+  }
+  .grid-bg::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image:radial-gradient(ellipse at 50% 0%, #000 30%, transparent 80%);
+  }
+  .page{
+    position:relative;z-index:1;
+    max-width:1280px;margin:0 auto 32px;
+    background:linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
+    border:1px solid var(--line);
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .page-inner{padding:28px 32px;}
+
+  .topbar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 32px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(90deg, #0a0c11, #0d0f15);
+  }
+  .topbar-left{display:flex;align-items:center;gap:16px;}
+  .ticker-block{display:flex;align-items:baseline;gap:10px;}
+  .ticker{font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.5px;color:var(--text);}
+  .exchange{font-family:var(--mono);font-size:10px;color:var(--text-3);border:1px solid var(--line-2);padding:2px 6px;border-radius:2px;letter-spacing:1px;}
+  .company{font-size:13px;color:var(--text-2);font-weight:400;}
+  .price-block{display:flex;align-items:baseline;gap:14px;}
+  .ltp{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text);}
+  .chg{font-family:var(--mono);font-size:13px;font-weight:500;}
+  .chg.dn{color:var(--red);}
+  .chg.up{color:var(--green);}
+  .meta{display:flex;gap:18px;font-family:var(--mono);font-size:10.5px;color:var(--text-3);letter-spacing:.5px;text-transform:uppercase;}
+  .meta span b{color:var(--text-2);font-weight:500;}
+
+  .report-head{
+    padding:28px 32px 18px;
+    display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;
+    border-bottom:1px solid var(--line);
+  }
+  .report-title{font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.05;letter-spacing:-.5px;color:var(--text);}
+  .report-title em{font-style:italic;color:var(--copper);font-weight:400;}
+  .report-sub{font-size:12.5px;color:var(--text-2);margin-top:8px;max-width:660px;line-height:1.55;}
+  .stamp{text-align:right;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;line-height:1.8;}
+  .stamp b{color:var(--text);font-weight:500;}
+
+  .row{display:grid;gap:20px;}
+  .row.two{grid-template-columns:1.2fr 1fr;}
+  .row.three{grid-template-columns:repeat(3,1fr);}
+  @media (max-width:980px){.row.two,.row.three{grid-template-columns:1fr;}}
+
+  .panel{background:var(--bg-3);border:1px solid var(--line);border-radius:2px;padding:20px;position:relative;}
+  .panel-label{
+    font-family:var(--mono);font-size:9.5px;letter-spacing:1.8px;
+    text-transform:uppercase;color:var(--text-3);margin-bottom:14px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .panel-label .pl-tag{background:var(--line);color:var(--text-2);padding:2px 7px;border-radius:1px;font-size:9px;letter-spacing:1px;}
+
+  /* Gauge */
+  .gauge-wrap{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;}
+  .gauge{position:relative;width:200px;height:120px;}
+  .gauge svg{width:100%;height:100%;}
+  .gauge-num{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);text-align:center;}
+  .gauge-num .n{font-family:var(--mono);font-weight:700;font-size:42px;color:var(--text);line-height:1;}
+  .gauge-num .max{font-family:var(--mono);font-size:11px;color:var(--text-3);}
+  .gauge-band{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--amber);margin-top:6px;text-transform:uppercase;}
+  .gauge-side .gs-title{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--text);line-height:1.1;}
+  .gauge-side .gs-sub{font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.5;}
+  .gauge-side .gs-meta{margin-top:14px;display:flex;gap:18px;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:.8px;text-transform:uppercase;}
+  .gauge-side .gs-meta b{color:var(--text);font-weight:500;}
+
+  /* KPI */
+  .kpi{padding:14px 14px;border:1px solid var(--line);background:linear-gradient(180deg, #0c0e14, #0a0c11);border-radius:2px;}
+  .kpi .k-label{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;}
+  .kpi .k-val{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--text);margin-top:6px;letter-spacing:-.5px;}
+  .kpi .k-sub{font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:4px;}
+  .kpi .k-sub.up{color:var(--green);}
+  .kpi .k-sub.dn{color:var(--red);}
+
+  /* Chart */
+  .chart-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .chart-head .ch-title{font-family:var(--serif);font-size:18px;font-weight:600;}
+  .chart-head .ch-meta{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  svg.price-chart{width:100%;height:280px;display:block;}
+  .chart-legend{display:flex;gap:18px;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;flex-wrap:wrap;}
+  .chart-legend .lg{display:flex;align-items:center;gap:6px;}
+  .chart-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  /* Section header */
+  .section-head{display:flex;align-items:center;gap:16px;margin:34px 0 14px;}
+  .section-head h2{font-family:var(--serif);font-weight:600;font-size:20px;letter-spacing:-.3px;}
+  .section-head .sh-rule{flex:1;height:1px;background:linear-gradient(90deg, var(--line-2), transparent);}
+  .section-head .sh-tag{font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;}
+
+  /* Cards */
+  .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  @media (max-width:780px){.card-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:540px){.card-grid{grid-template-columns:1fr;}}
+  .mcard{
+    background:var(--bg-3);border:1px solid var(--line);border-left:3px solid var(--line-2);
+    padding:14px 14px 16px;border-radius:2px;position:relative;
+  }
+  .mcard.green{border-left-color:var(--green);background:linear-gradient(180deg, #0c1612 0%, var(--bg-3) 100%);}
+  .mcard.red{border-left-color:var(--red);background:linear-gradient(180deg, #16100f 0%, var(--bg-3) 100%);}
+  .mcard.amber{border-left-color:var(--amber);background:linear-gradient(180deg, #161108 0%, var(--bg-3) 100%);}
+  .mc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .mc-name{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .mc-flag{font-family:var(--mono);font-size:9px;font-weight:600;padding:2px 6px;border-radius:1px;letter-spacing:1px;}
+  .mc-flag.green{background:var(--green-soft);color:var(--green);}
+  .mc-flag.red{background:var(--red-soft);color:var(--red);}
+  .mc-flag.amber{background:var(--amber-soft);color:var(--amber);}
+  .mc-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);margin-top:8px;letter-spacing:-.5px;}
+  .mc-bench{font-family:var(--mono);font-size:10.5px;color:var(--text-2);margin-top:3px;}
+  .mc-note{font-size:11.5px;color:var(--text-2);line-height:1.5;margin-top:8px;}
+
+  /* Score Breakdown */
+  .breakdown{margin-top:20px;}
+  .bd-row{display:grid;grid-template-columns:120px 1fr 60px 50px;gap:14px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);}
+  .bd-row:last-child{border-bottom:none;}
+  .bd-label{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-2);}
+  .bd-bar{height:8px;background:var(--line);border-radius:1px;overflow:hidden;position:relative;}
+  .bd-bar > div{height:100%;background:linear-gradient(90deg, var(--accent), var(--copper));border-radius:1px;}
+  .bd-bar.high > div{background:linear-gradient(90deg, var(--red), #ff8a5b);}
+  .bd-bar.mid > div{background:linear-gradient(90deg, var(--amber), #ffd685);}
+  .bd-bar.low > div{background:linear-gradient(90deg, var(--green), #8be9c4);}
+  .bd-score{font-family:var(--mono);font-size:13px;font-weight:600;text-align:right;color:var(--text);}
+  .bd-weight{font-family:var(--mono);font-size:10px;color:var(--text-3);text-align:right;letter-spacing:1px;}
+
+  /* Page 2 */
+  .page-no{position:absolute;top:10px;right:14px;font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:2px;}
+
+  .qtable{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;}
+  .qtable th, .qtable td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);}
+  .qtable th:first-child, .qtable td:first-child{text-align:left;}
+  .qtable th{font-size:9.5px;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;font-weight:500;background:#0a0c11;border-bottom:1px solid var(--line-2);}
+  .qtable td{color:var(--text-2);}
+  .qtable td:first-child{color:var(--text);font-weight:500;}
+  .qtable .pos{color:var(--green);}
+  .qtable .neg{color:var(--red);}
+  .qtable tr.latest td{background:#0d1118;color:var(--text);font-weight:600;}
+  .qtable tr.latest td:first-child{color:var(--copper);}
+
+  /* Earn card */
+  .earn-card{background:linear-gradient(135deg, #0e1219 0%, var(--bg-3) 100%);border:1px solid var(--line);padding:20px;border-radius:2px;}
+  .earn-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
+  .earn-head h3{font-family:var(--serif);font-size:18px;font-weight:600;}
+  .earn-head .tag{font-family:var(--mono);font-size:9px;color:var(--green);letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--green);padding:2px 6px;}
+  .earn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;}
+  .eg-lbl{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .eg-val{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--text);margin-top:4px;}
+  .eg-sub{font-family:var(--mono);font-size:10px;margin-top:2px;}
+  .earn-body{font-size:12.5px;color:var(--text-2);line-height:1.6;border-top:1px dashed var(--line);padding-top:12px;}
+  .earn-body b{color:var(--text);font-weight:500;}
+
+  /* Dual columns */
+  .dual{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:780px){.dual{grid-template-columns:1fr;}}
+  .col-cat, .col-risk{padding:18px;border:1px solid var(--line);border-radius:2px;}
+  .col-cat{background:linear-gradient(180deg, #0c1612 0%, var(--bg-3) 100%);border-top:2px solid var(--green);}
+  .col-risk{background:linear-gradient(180deg, #16100f 0%, var(--bg-3) 100%);border-top:2px solid var(--red);}
+  .col-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
+  .col-head h3{font-family:var(--serif);font-size:17px;font-weight:600;}
+  .col-cat .col-head h3{color:var(--green);}
+  .col-risk .col-head h3{color:var(--red);}
+  .col-head .ct{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.5px;}
+  .pt{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);}
+  .pt:last-child{border-bottom:none;}
+  .pt .pt-n{font-family:var(--mono);font-size:10px;color:var(--text-3);}
+  .pt .pt-t{font-size:12.5px;color:var(--text-2);line-height:1.5;}
+  .pt .pt-t b{color:var(--text);font-weight:500;}
+
+  /* Expert grid */
+  .expert-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  @media (max-width:780px){.expert-grid{grid-template-columns:repeat(2,1fr);}}
+  .ex{border:1px solid var(--line);padding:12px;background:var(--bg-3);border-radius:2px;border-top:2px solid var(--text-3);}
+  .ex.buy{border-top-color:var(--green);}
+  .ex.sell{border-top-color:var(--red);}
+  .ex.hold{border-top-color:var(--amber);}
+  .ex-broker{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  .ex-call{font-family:var(--mono);font-size:11px;font-weight:600;margin-top:6px;letter-spacing:1.5px;}
+  .ex.buy .ex-call{color:var(--green);}
+  .ex.sell .ex-call{color:var(--red);}
+  .ex.hold .ex-call{color:var(--amber);}
+  .ex-tp{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:6px;letter-spacing:-.3px;}
+  .ex-up{font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:2px;}
+
+  /* Industry */
+  .ind{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:780px){.ind{grid-template-columns:1fr;}}
+  .ind-block{padding:16px;border:1px solid var(--line);background:var(--bg-3);border-radius:2px;}
+  .ind-block h4{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:10px;}
+  .ind-row{display:flex;justify-content:space-between;padding:7px 0;font-family:var(--mono);font-size:11px;border-bottom:1px dashed var(--line);}
+  .ind-row:last-child{border-bottom:none;}
+  .ind-row .l{color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  .ind-row .v{color:var(--text);font-weight:600;}
+
+  /* Order book viz */
+  .ob-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px;}
+  @media (max-width:780px){.ob-grid{grid-template-columns:repeat(2,1fr);}}
+  .ob{padding:14px;border:1px solid var(--line);background:var(--bg-3);border-radius:2px;border-left:3px solid var(--copper);}
+  .ob-lbl{font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .ob-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--text);margin-top:6px;}
+  .ob-sub{font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:3px;}
+
+  /* Verdict */
+  .verdict{
+    margin-top:24px;
+    background:linear-gradient(135deg, #0e1219 0%, #0a0c11 100%);
+    border:1px solid var(--line);border-radius:2px;padding:24px;
+    position:relative;overflow:hidden;
+  }
+  .verdict::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(600px 200px at 100% 0%, rgba(203,104,67,.06), transparent 60%);
+    pointer-events:none;
+  }
+  .verdict-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;position:relative;}
+  .verdict-head h3{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.3px;}
+  .verdict-head .vh-tag{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--copper);text-transform:uppercase;border:1px solid var(--copper);padding:3px 8px;}
+
+  .rating-bar{margin:14px 0 16px;position:relative;}
+  .rb-track{height:32px;background:linear-gradient(90deg, var(--red) 0%, #ff8a5b 25%, var(--amber) 50%, #8be9c4 75%, var(--green) 100%);border-radius:2px;position:relative;}
+  .rb-marker{position:absolute;top:-6px;bottom:-6px;width:3px;background:var(--text);box-shadow:0 0 0 2px var(--bg);}
+  .rb-marker::after{content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border:6px solid transparent;border-top-color:var(--text);}
+  .rb-labels{display:flex;justify-content:space-between;margin-top:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;}
+
+  .verdict-text{font-size:13.5px;color:var(--text-2);line-height:1.65;position:relative;}
+  .verdict-text b{color:var(--text);font-weight:500;}
+  .verdict-text .tag{display:inline-block;padding:1px 6px;font-family:var(--mono);font-size:10px;letter-spacing:1px;background:var(--amber-soft);color:var(--amber);border-radius:1px;margin:0 2px;}
+  .verdict-text .tag.r{background:var(--red-soft);color:var(--red);}
+  .verdict-text .tag.g{background:var(--green-soft);color:var(--green);}
+
+  .actions{margin-top:24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:18px;border-top:1px solid var(--line);}
+  .disclaim{font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:.8px;line-height:1.6;max-width:780px;}
+  .copy-btn{
+    background:transparent;color:var(--copper);border:1px solid var(--copper);
+    font-family:var(--mono);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;
+    padding:10px 18px;cursor:pointer;border-radius:2px;transition:all .2s;
+  }
+  .copy-btn:hover{background:var(--copper);color:var(--bg);}
+  .copy-btn.copied{background:var(--green);color:var(--bg);border-color:var(--green);}
+
+  .micro{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+</style>
+</head>
+<body class="grid-bg">
+
+<!-- =========================== PAGE 1 =========================== -->
+<section class="page">
+  <span class="page-no">PG 01 / 02</span>
+
+  <!-- Stock bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="ticker-block">
+        <span class="ticker">HFCL</span>
+        <span class="exchange">NSE • 500183</span>
+      </div>
+      <span class="company">HFCL Ltd · Telecom · OFC · Defence Electronics</span>
+    </div>
+    <div class="price-block">
+      <span class="ltp">₹144.19</span>
+      <span class="chg dn">−1.69 (−1.16%)</span>
+    </div>
+  </div>
+  <div class="topbar" style="border-top:0;border-bottom:1px solid var(--line);padding-top:8px;padding-bottom:8px;">
+    <div class="meta">
+      <span>SECTOR <b>TELECOM EQUIPMENT</b></span>
+      <span>INDEX <b>NIFTY SMALLCAP 100</b></span>
+      <span>ISIN <b>INE548A01028</b></span>
+      <span>BETA <b>0.84</b></span>
+    </div>
+    <div class="meta">
+      <span>AS OF <b>21-MAY-2026</b></span>
+    </div>
+  </div>
+
+  <!-- Report header -->
+  <div class="report-head">
+    <div>
+      <div class="report-title">Equity Risk &amp; Quality Report <em>— Post-Q4FY26</em></div>
+      <p class="report-sub">Independent forensic and fundamental assessment of HFCL Limited following the blockbuster Q4FY26 print (30-Apr-2026). Composite scoring spans valuation discipline, balance-sheet hygiene, and growth durability — with explicit calibration for the 150%+ rally off 52W lows and recent promoter behaviour.</p>
+    </div>
+    <div class="stamp">
+      <div>Report ID · <b>HFCL · RR-2705-FY26</b></div>
+      <div>Analyst · <b>Equity Research Desk</b></div>
+      <div>Coverage · <b>Initiating / Refresh</b></div>
+      <div>Currency · <b>INR ₹ (Cr unless stated)</b></div>
+    </div>
+  </div>
+
+  <div class="page-inner">
+
+    <!-- Gauge + KPI strip -->
+    <div class="row two" style="margin-bottom:20px;">
+      <!-- Risk Gauge -->
+      <div class="panel">
+        <div class="panel-label">
+          <span>Composite Risk Score</span>
+          <span class="pl-tag">SCALE 0 → 100 (HIGHER = RISKIER)</span>
+        </div>
+        <div class="gauge-wrap">
+          <div class="gauge">
+            <svg viewBox="0 0 200 120">
+              <path d="M 20 110 A 80 80 0 0 1 60 41.2" stroke="#1a3a2a" stroke-width="14" fill="none" stroke-linecap="butt"/>
+              <path d="M 60 41.2 A 80 80 0 0 1 100 30" stroke="#2a3a1a" stroke-width="14" fill="none" stroke-linecap="butt"/>
+              <path d="M 100 30 A 80 80 0 0 1 140 41.2" stroke="#3a2e10" stroke-width="14" fill="none" stroke-linecap="butt"/>
+              <path d="M 140 41.2 A 80 80 0 0 1 180 110" stroke="#3a1418" stroke-width="14" fill="none" stroke-linecap="butt"/>
+              <!-- Filled arc up to score 58 (slightly past midpoint, leaning into amber/red zone) -->
+              <!-- 58% of half-circle: angle from start = 180 - (58/100)*180 = 75.6° from x-axis -->
+              <path d="M 20 110 A 80 80 0 0 1 119.7 30.5" stroke="url(#gg)" stroke-width="14" fill="none" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="gg" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0" stop-color="#3ddc97"/>
+                  <stop offset=".55" stop-color="#ffb547"/>
+                  <stop offset="1" stop-color="#ff5470"/>
+                </linearGradient>
+              </defs>
+              <line x1="100" y1="110" x2="119.7" y2="30.5" stroke="#e6e8ee" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="100" cy="110" r="6" fill="#08090d" stroke="#e6e8ee" stroke-width="2"/>
+              <text x="14" y="118" font-family="JetBrains Mono" font-size="8" fill="#5a6071">0</text>
+              <text x="92" y="22" font-family="JetBrains Mono" font-size="8" fill="#5a6071">50</text>
+              <text x="178" y="118" font-family="JetBrains Mono" font-size="8" fill="#5a6071">100</text>
+            </svg>
+            <div class="gauge-num">
+              <div class="n">58</div>
+              <div class="max">/ 100</div>
+              <div class="gauge-band" style="color:var(--amber);">▼ Mod-High</div>
+            </div>
+          </div>
+          <div class="gauge-side">
+            <div class="gs-title">Real Growth · Frothy Tape</div>
+            <div class="gs-sub">Operational delivery is undeniable — Q4 revenue +127.8% YoY, ₹21,200 Cr order book. But the 150% rally off lows + promoter stake decline + warrant dilution at ₹74 create a meaningful asymmetry against fresh longs.</div>
+            <div class="gs-meta">
+              <span>VAL. RISK <b style="color:var(--red);">76</b></span>
+              <span>BAL-SHEET <b style="color:var(--amber);">52</b></span>
+              <span>GROWTH <b style="color:var(--green);">25</b></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI strip -->
+      <div class="panel">
+        <div class="panel-label">
+          <span>Snapshot · Key Metrics</span>
+          <span class="pl-tag">CONSOLIDATED · TTM</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+          <div class="kpi">
+            <div class="k-label">Market Cap</div>
+            <div class="k-val">₹21,323 Cr</div>
+            <div class="k-sub">~US$ 2.55 B · Smallcap</div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">P/E (TTM)</div>
+            <div class="k-val">71.1×</div>
+            <div class="k-sub dn">vs sector ~32×</div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">P/B</div>
+            <div class="k-val">4.36×</div>
+            <div class="k-sub dn">2.5× to 4.5× depending on book date</div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">EPS · FY26</div>
+            <div class="k-val">₹2.20</div>
+            <div class="k-sub up">vs ₹1.13 in FY25</div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">52W Range</div>
+            <div class="k-val">₹59.8 – 153.4</div>
+            <div class="k-sub up">+154% off lows</div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">1Y Return</div>
+            <div class="k-val" style="color:var(--green);">+63.7%</div>
+            <div class="k-sub">Nifty +1.6% · Smallcap +12%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 12M Price Chart -->
+    <div class="panel">
+      <div class="chart-head">
+        <div class="ch-title">12-Month Price Trajectory <span style="font-family:var(--mono);font-weight:400;font-size:11px;color:var(--text-3);letter-spacing:1px;">· MAY 2025 → MAY 2026</span></div>
+        <div class="ch-meta">CLOSE · NSE · EOD</div>
+      </div>
+      <svg class="price-chart" viewBox="0 0 1200 280" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="areaGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#cb6843" stop-opacity=".22"/>
+            <stop offset="1" stop-color="#cb6843" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <g stroke="#1d212c" stroke-width="1" stroke-dasharray="2,4">
+          <line x1="0" y1="40" x2="1200" y2="40"/>
+          <line x1="0" y1="90" x2="1200" y2="90"/>
+          <line x1="0" y1="140" x2="1200" y2="140"/>
+          <line x1="0" y1="190" x2="1200" y2="190"/>
+          <line x1="0" y1="240" x2="1200" y2="240"/>
+        </g>
+        <!-- Y-axis (₹50 to ₹160 range) -->
+        <g font-family="JetBrains Mono" font-size="9" fill="#5a6071">
+          <text x="6" y="44">160</text>
+          <text x="6" y="94">132</text>
+          <text x="6" y="144">105</text>
+          <text x="6" y="194">78</text>
+          <text x="6" y="244">50</text>
+        </g>
+        <!-- X-axis -->
+        <g font-family="JetBrains Mono" font-size="9" fill="#5a6071" text-anchor="middle">
+          <text x="50" y="262">MAY</text>
+          <text x="142" y="262">JUN</text>
+          <text x="234" y="262">JUL</text>
+          <text x="326" y="262">AUG</text>
+          <text x="418" y="262">SEP</text>
+          <text x="510" y="262">OCT</text>
+          <text x="602" y="262">NOV</text>
+          <text x="694" y="262">DEC</text>
+          <text x="786" y="262">JAN</text>
+          <text x="878" y="262">FEB</text>
+          <text x="970" y="262">MAR</text>
+          <text x="1062" y="262">APR</text>
+          <text x="1154" y="262">MAY</text>
+        </g>
+
+        <!-- HFCL Path: roughly May'25 ~₹100, fell to ~₹75 Aug, ~₹68 Oct-Dec (52W low ₹59.8 around Mar), then surge after Q4 -->
+        <!-- prices: 100, 92, 80, 75, 70, 75, 78, 70, 70, 75, 95, 120, 150 -->
+        <!-- ys: (60+( (160-price)/110 )*200) — using formula: y = 240 - ((price-50)/110)*200; 
+             100→149, 92→164, 80→185, 75→194, 70→204, 75→194, 78→189, 70→204, 70→204, 75→194, 95→158, 120→113, 150→58 -->
+        <path d="M 50 149 L 142 164 L 234 185 L 326 194 L 418 204 L 510 194 L 602 189 L 694 204 L 786 204 L 878 194 L 970 158 L 1062 113 L 1154 58 L 1154 240 L 50 240 Z" fill="url(#areaGrad)"/>
+        <polyline points="50,149 142,164 234,185 326,194 418,204 510,194 602,189 694,204 786,204 878,194 970,158 1062,113 1154,58"
+                  fill="none" stroke="#cb6843" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
+
+        <!-- 52W Low marker (Mar/early-period) -->
+        <g>
+          <circle cx="786" cy="204" r="5" fill="#ff5470" stroke="#08090d" stroke-width="2"/>
+          <line x1="786" y1="204" x2="786" y2="225" stroke="#ff5470" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="786" y="238" font-family="JetBrains Mono" font-size="9" fill="#ff5470" text-anchor="middle">52W LOW · ₹59.8</text>
+        </g>
+
+        <!-- $1.1B OFC contract (Mar) -->
+        <g>
+          <circle cx="970" cy="158" r="5" fill="#3ddc97" stroke="#08090d" stroke-width="2"/>
+          <line x1="970" y1="158" x2="970" y2="134" stroke="#3ddc97" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="970" y="130" font-family="JetBrains Mono" font-size="9" fill="#3ddc97" text-anchor="middle">$1.1B OFC DEAL</text>
+        </g>
+
+        <!-- Warrant issue + promoter dilution (mid-Mar) -->
+        <g>
+          <circle cx="950" cy="160" r="4" fill="#ff5470" stroke="#08090d" stroke-width="2"/>
+          <text x="950" y="178" font-family="JetBrains Mono" font-size="9" fill="#ff5470" text-anchor="middle">WARRANT @ ₹74 · DILUTIVE</text>
+        </g>
+
+        <!-- Q4 results blowout (Apr 30) -->
+        <g>
+          <circle cx="1062" cy="113" r="5" fill="#7cc1ff" stroke="#08090d" stroke-width="2"/>
+          <line x1="1062" y1="113" x2="1062" y2="88" stroke="#7cc1ff" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="1062" y="84" font-family="JetBrains Mono" font-size="9" fill="#7cc1ff" text-anchor="middle">Q4FY26 · REV +128% · PAT TURNAROUND</text>
+        </g>
+
+        <!-- 52W High May -->
+        <g>
+          <circle cx="1154" cy="58" r="5" fill="#3ddc97" stroke="#08090d" stroke-width="2"/>
+          <line x1="1154" y1="58" x2="1100" y2="34" stroke="#3ddc97" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="1090" y="30" font-family="JetBrains Mono" font-size="9" fill="#3ddc97" text-anchor="end">52W HIGH · ₹153.4 · OVERBOUGHT</text>
+        </g>
+
+        <!-- BharatNet Phase-3 win (Sep) -->
+        <g>
+          <circle cx="418" cy="204" r="4" fill="#ffb547" stroke="#08090d" stroke-width="2"/>
+          <text x="418" y="220" font-family="JetBrains Mono" font-size="9" fill="#ffb547" text-anchor="middle">▲ BHARATNET-3</text>
+        </g>
+      </svg>
+      <div class="chart-legend">
+        <span class="lg"><span class="dot" style="background:#cb6843;"></span>HFCL · CLOSE</span>
+        <span class="lg"><span class="dot" style="background:#3ddc97;"></span>BULLISH CATALYST</span>
+        <span class="lg"><span class="dot" style="background:#ff5470;"></span>BEARISH MARKER</span>
+        <span class="lg"><span class="dot" style="background:#7cc1ff;"></span>EARNINGS EVENT</span>
+        <span class="lg"><span class="dot" style="background:#ffb547;"></span>ORDER WIN</span>
+      </div>
+    </div>
+
+    <!-- ============ VALUATION ============ -->
+    <div class="section-head">
+      <h2>Valuation</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">06 METRICS · BENCHMARKED VS TELECOM/OFC PEERS</span>
+    </div>
+    <div class="card-grid">
+      <div class="mcard red">
+        <div class="mc-top">
+          <span class="mc-name">P/E (TTM)</span>
+          <span class="mc-flag red">MISS</span>
+        </div>
+        <div class="mc-val">71.1×</div>
+        <div class="mc-bench">Sector median: ~32× · 5Y avg: 48×</div>
+        <div class="mc-note">Hardware/EPC business at 71× requires sustained 25%+ EPS CAGR. Some platforms quote up to 209× on TTM if you weight Q4 alone.</div>
+      </div>
+      <div class="mcard red">
+        <div class="mc-top">
+          <span class="mc-name">P/B</span>
+          <span class="mc-flag red">MISS</span>
+        </div>
+        <div class="mc-val">4.36×</div>
+        <div class="mc-bench">Sector median: 2.5× · Book ₹33/share</div>
+        <div class="mc-note">Stretched on book. Recent warrant issue at ₹74 (book + 2.2×) creates dilution at unfavorable terms for existing shareholders.</div>
+      </div>
+      <div class="mcard amber">
+        <div class="mc-top">
+          <span class="mc-name">EV / EBITDA</span>
+          <span class="mc-flag amber">CAUTION</span>
+        </div>
+        <div class="mc-val">~28×</div>
+        <div class="mc-bench">Sector median: 18× · Defence peers: 32–40×</div>
+        <div class="mc-note">Defensible IF defence segment scales as guided. Otherwise rich for a fiber/EPC name. FY27e EBITDA needs to print ₹1,100–1,250 Cr.</div>
+      </div>
+      <div class="mcard amber">
+        <div class="mc-top">
+          <span class="mc-name">PEG (FWD)</span>
+          <span class="mc-flag amber">CAUTION</span>
+        </div>
+        <div class="mc-val">~1.8×</div>
+        <div class="mc-bench">Mgmt guide: 20–25% rev growth · 3–4% margin lift</div>
+        <div class="mc-note">Better than Biocon-style PEG, but still no margin of safety. PEG of 1× would put fair value closer to ₹105–115.</div>
+      </div>
+      <div class="mcard red">
+        <div class="mc-top">
+          <span class="mc-name">Dividend Yield</span>
+          <span class="mc-flag red">MISS</span>
+        </div>
+        <div class="mc-val">0.14%</div>
+        <div class="mc-bench">FY26 DPS ₹0.20 · Sector avg: 0.6%</div>
+        <div class="mc-note">Capital being redeployed to capex (preform plant ₹580 Cr, defence plant). Not a yield story.</div>
+      </div>
+      <div class="mcard amber">
+        <div class="mc-top">
+          <span class="mc-name">Mcap / Sales</span>
+          <span class="mc-flag amber">CAUTION</span>
+        </div>
+        <div class="mc-val">4.31×</div>
+        <div class="mc-bench">Sector median: 2.8× · STL Tech: 1.8×</div>
+        <div class="mc-note">Mcap/sales sits ~50% above peers. Justified ONLY if defence + DCIM segments lift blended margin past 20% by FY28.</div>
+      </div>
+    </div>
+
+    <!-- ============ FINANCIAL HEALTH ============ -->
+    <div class="section-head">
+      <h2>Financial Health</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">06 METRICS · BALANCE SHEET HYGIENE</span>
+    </div>
+    <div class="card-grid">
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">Debt / Equity</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">0.41×</div>
+        <div class="mc-bench">Improved from 0.65× three years back</div>
+        <div class="mc-note">Healthy leverage. Promoter shares fully de-pledged (since Nov-2021). QIP and warrant proceeds further easing balance sheet.</div>
+      </div>
+      <div class="mcard amber">
+        <div class="mc-top">
+          <span class="mc-name">Interest Coverage</span>
+          <span class="mc-flag amber">CAUTION</span>
+        </div>
+        <div class="mc-val">~4.2×</div>
+        <div class="mc-bench">FY25: ~2.8× · trending up</div>
+        <div class="mc-note">Improving on EBITDA recovery. Watch HTL subsidiary corporate guarantee (₹265 Cr) which Parent has substituted.</div>
+      </div>
+      <div class="mcard amber">
+        <div class="mc-top">
+          <span class="mc-name">CFO / EBITDA</span>
+          <span class="mc-flag amber">CAUTION</span>
+        </div>
+        <div class="mc-val">~52%</div>
+        <div class="mc-bench">Healthy &gt;70% · weaker due to EPC working capital</div>
+        <div class="mc-note">EPC and BharatNet receivables stretching days sales outstanding. Cash conversion lags reported EBITDA — typical of project-based businesses.</div>
+      </div>
+      <div class="mcard red">
+        <div class="mc-top">
+          <span class="mc-name">Promoter Holding</span>
+          <span class="mc-flag red">MISS</span>
+        </div>
+        <div class="mc-val">28.29%</div>
+        <div class="mc-bench">↓ from 34.37% in Mar-25 · ↓ 608 bps in 9M</div>
+        <div class="mc-note"><b>Single biggest red flag.</b> Promoters reduced stake sharply during the run-up. Warrant issue at ₹74 (vs CMP ₹144) is dilutive to retail.</div>
+      </div>
+      <div class="mcard amber">
+        <div class="mc-top">
+          <span class="mc-name">FII Holding</span>
+          <span class="mc-flag amber">CAUTION</span>
+        </div>
+        <div class="mc-val">7.08%</div>
+        <div class="mc-bench">Modest · DII 8.58% · stable QoQ</div>
+        <div class="mc-note">Limited institutional anchor — institutional ownership total ~16%, with retail at 56% driving most price action.</div>
+      </div>
+      <div class="mcard red">
+        <div class="mc-top">
+          <span class="mc-name">ROE</span>
+          <span class="mc-flag red">MISS</span>
+        </div>
+        <div class="mc-val">4.21%</div>
+        <div class="mc-bench">Sector median: 13% · ROCE: 8.62%</div>
+        <div class="mc-note">Sub-cost-of-capital returns. Improvement contingent on margin expansion to 20%+ blended (currently 16.7%). Multi-year journey.</div>
+      </div>
+    </div>
+
+    <!-- ============ GROWTH ============ -->
+    <div class="section-head">
+      <h2>Growth</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">06 METRICS · FY26 PRINT</span>
+    </div>
+    <div class="card-grid">
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">Revenue YoY</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">+21.77%</div>
+        <div class="mc-bench">FY26 ₹4,949 Cr vs ₹4,065 Cr · Mgmt FY27 guide 20–25%</div>
+        <div class="mc-note">Best annual growth in 4 years. But 5Y revenue CAGR is just <b>2.27%</b> — single-year beat, not yet a trend.</div>
+      </div>
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">EBITDA YoY</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">+63%</div>
+        <div class="mc-bench">FY26 ₹827 Cr · margin 16.7% (FY25: 12.5%)</div>
+        <div class="mc-note">Margin lift driven by export mix &amp; high fibre-count cables. Mgmt eyes 20–21% by FY29.</div>
+      </div>
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">Net Profit YoY</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">+90.14%</div>
+        <div class="mc-bench">FY26 PAT ₹329 Cr vs ₹173 Cr in FY25</div>
+        <div class="mc-note">Q4 alone delivered ₹184 Cr (vs ₹83 Cr loss in Q4FY25). Sequential momentum strong.</div>
+      </div>
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">Order Book</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">₹21,200 Cr</div>
+        <div class="mc-bench">4.3× FY26 revenue · 24–30 months visibility</div>
+        <div class="mc-note">Includes $1.1B (₹10,159 Cr) global OFC deal, ₹13,000 Cr BharatNet consortium share, ₹2,230 Cr defence/aero pipeline.</div>
+      </div>
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">EBITDA Margin</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">16.70%</div>
+        <div class="mc-bench">FY25: 12.47% · Target FY29: 20–21%</div>
+        <div class="mc-note">+423 bps margin expansion in one year. EU anti-dumping exemption + export mix shift driving the lift.</div>
+      </div>
+      <div class="mcard amber">
+        <div class="mc-top">
+          <span class="mc-name">5Y Sales CAGR</span>
+          <span class="mc-flag amber">CAUTION</span>
+        </div>
+        <div class="mc-val">2.27%</div>
+        <div class="mc-bench">Last 5Y revenue meandered in ₹4,000–4,500 Cr band</div>
+        <div class="mc-note">The long-arc story remains "promising telecom company waiting for breakout." FY26 may be the breakout — or another false dawn. Track Q1–Q2 FY27 closely.</div>
+      </div>
+    </div>
+
+    <!-- Score Breakdown -->
+    <div class="panel" style="margin-top:24px;">
+      <div class="panel-label">
+        <span>Score Breakdown · Weighted Composite</span>
+        <span class="pl-tag">VAL 35 / HEALTH 35 / GROWTH 30</span>
+      </div>
+      <div class="breakdown">
+        <div class="bd-row">
+          <div class="bd-label">Valuation</div>
+          <div class="bd-bar high"><div style="width:76%"></div></div>
+          <div class="bd-score">76</div>
+          <div class="bd-weight">×0.35</div>
+        </div>
+        <div class="bd-row">
+          <div class="bd-label">Fin. Health</div>
+          <div class="bd-bar mid"><div style="width:52%"></div></div>
+          <div class="bd-score">52</div>
+          <div class="bd-weight">×0.35</div>
+        </div>
+        <div class="bd-row">
+          <div class="bd-label">Growth</div>
+          <div class="bd-bar low"><div style="width:25%"></div></div>
+          <div class="bd-score">25</div>
+          <div class="bd-weight">×0.30</div>
+        </div>
+        <div class="bd-row" style="border-top:1px solid var(--line-2);padding-top:14px;border-bottom:none;">
+          <div class="bd-label" style="color:var(--copper);">COMPOSITE</div>
+          <div class="bd-bar"><div style="width:58%;background:linear-gradient(90deg,var(--accent),var(--copper));"></div></div>
+          <div class="bd-score" style="color:var(--copper);font-size:16px;">58</div>
+          <div class="bd-weight">/ 100</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- =========================== PAGE 2 =========================== -->
+<section class="page">
+  <span class="page-no">PG 02 / 02</span>
+
+  <div class="report-head">
+    <div>
+      <div class="report-title">Operating Detail <em>&amp; Verdict</em></div>
+      <p class="report-sub">Quarterly trajectory, Q4FY26 print decomposition, order-book composition, dual-column thesis, sell-side positioning, industry context, and the bottom-line call with explicit risk controls.</p>
+    </div>
+    <div class="stamp">
+      <div>HFCL · <b>NSE 500183</b></div>
+      <div>CMP · <b>₹144.19</b></div>
+      <div>RISK SCORE · <b style="color:var(--amber);">58 / 100</b></div>
+      <div>CALL · <b style="color:var(--amber);">HOLD · TRIM PARTIAL</b></div>
+    </div>
+  </div>
+
+  <div class="page-inner">
+
+    <!-- Quarterly Trend Table -->
+    <div class="panel">
+      <div class="panel-label">
+        <span>Quarterly Trend · Consolidated</span>
+        <span class="pl-tag">LAST 6 QUARTERS · ₹ Cr</span>
+      </div>
+      <table class="qtable">
+        <thead>
+          <tr>
+            <th>Quarter</th>
+            <th>Revenue</th>
+            <th>EBITDA</th>
+            <th>EBITDA %</th>
+            <th>PAT</th>
+            <th>EPS (₹)</th>
+            <th>YoY PAT</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Q3FY25 · Dec'24</td>
+            <td>1,028</td>
+            <td>149</td>
+            <td>14.5%</td>
+            <td>72</td>
+            <td>0.50</td>
+            <td class="pos">+1%</td>
+          </tr>
+          <tr>
+            <td>Q4FY25 · Mar'25</td>
+            <td>801</td>
+            <td>−22</td>
+            <td>neg.</td>
+            <td>−83</td>
+            <td>−0.58</td>
+            <td class="neg">PROFIT→LOSS</td>
+          </tr>
+          <tr>
+            <td>Q1FY26 · Jun'25</td>
+            <td>1,108</td>
+            <td>149</td>
+            <td>13.5%</td>
+            <td>32</td>
+            <td>0.22</td>
+            <td class="pos">turnaround</td>
+          </tr>
+          <tr>
+            <td>Q2FY26 · Sep'25</td>
+            <td>807</td>
+            <td>105</td>
+            <td>13.0%</td>
+            <td>13</td>
+            <td>0.09</td>
+            <td class="neg">−82%</td>
+          </tr>
+          <tr>
+            <td>Q3FY26 · Dec'25</td>
+            <td>1,210</td>
+            <td>236</td>
+            <td>19.5%</td>
+            <td>101</td>
+            <td>0.70</td>
+            <td class="pos">+40%</td>
+          </tr>
+          <tr class="latest">
+            <td>Q4FY26 · Mar'26</td>
+            <td>1,824</td>
+            <td>337</td>
+            <td>18.5%</td>
+            <td>184</td>
+            <td>1.20</td>
+            <td class="pos">+322%*</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="micro" style="margin-top:10px;color:var(--text-3);">
+        *Q4FY26 PAT vs LOSS of ₹83 Cr in Q4FY25 — calculation reflects turnaround. Revenue +127.8% YoY. Telecom products = 66% of mix vs 74% in Q4FY24 (defence/EPC contribution rising).
+      </div>
+    </div>
+
+    <!-- Order Book Decomposition -->
+    <div class="section-head">
+      <h2>Order Book · ₹21,200 Cr · Composition</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">VISIBILITY: 24–30 MONTHS</span>
+    </div>
+    <div class="ob-grid">
+      <div class="ob">
+        <div class="ob-lbl">$1.1B Global OFC Deal</div>
+        <div class="ob-val">₹10,159 Cr</div>
+        <div class="ob-sub">5-Year supply · International municipal</div>
+      </div>
+      <div class="ob">
+        <div class="ob-lbl">BharatNet Phase-3 (UP+Punjab)</div>
+        <div class="ob-val">₹13,000 Cr</div>
+        <div class="ob-sub">Consortium · HFCL share ~35–40%</div>
+      </div>
+      <div class="ob">
+        <div class="ob-lbl">Defence + Aerospace</div>
+        <div class="ob-val">₹2,230 Cr</div>
+        <div class="ob-sub">₹1,930 Cr export · ₹300 Cr domestic</div>
+      </div>
+      <div class="ob">
+        <div class="ob-lbl">Telecom Equipment</div>
+        <div class="ob-val">₹804 Cr</div>
+        <div class="ob-sub">5G FWA CPE · UBR radios</div>
+      </div>
+    </div>
+
+    <!-- Latest Earnings -->
+    <div style="margin-top:20px;">
+      <div class="earn-card">
+        <div class="earn-head">
+          <h3>Q4FY26 Earnings Update · 30-Apr-2026</h3>
+          <span class="tag">RECORD QUARTER · BLOWOUT BEAT</span>
+        </div>
+        <div class="earn-grid">
+          <div>
+            <div class="eg-lbl">Revenue</div>
+            <div class="eg-val">₹1,824 Cr</div>
+            <div class="eg-sub" style="color:var(--green);">+127.8% YoY · +50.7% QoQ</div>
+          </div>
+          <div>
+            <div class="eg-lbl">EBITDA</div>
+            <div class="eg-val">₹337 Cr</div>
+            <div class="eg-sub" style="color:var(--green);">vs −₹22 Cr · margin 18.5%</div>
+          </div>
+          <div>
+            <div class="eg-lbl">PAT</div>
+            <div class="eg-val">₹184 Cr</div>
+            <div class="eg-sub" style="color:var(--green);">Turnaround from ₹83 Cr loss</div>
+          </div>
+          <div>
+            <div class="eg-lbl">FY26 Dividend</div>
+            <div class="eg-val">₹0.20/sh</div>
+            <div class="eg-sub" style="color:var(--text-3);">Record date pending</div>
+          </div>
+        </div>
+        <div class="earn-body">
+          <b>Print quality:</b> The single biggest quarterly beat HFCL has ever printed. Q4FY26 revenue at ₹1,824 Cr more than doubled YoY against a depressed Q4FY25 base (₹801 Cr revenue, ₹83 Cr loss). EBITDA swung positive at ₹337 Cr (18.47% margin) — the highest quarterly margin in five years.
+          <br><br>
+          <b>What drove it:</b> (1) Export mix lift (EU anti-dumping exemption gives HFCL a clean run while peers pay duties), (2) High fibre-count cable products (up to 6,912F) commanding premium pricing, (3) HTL subsidiary winning ₹1,366 Cr OFC orders, (4) 5G CPE production at scale.
+          <br><br>
+          <b>Management guidance (FY27):</b> Revenue growth <b>20–25%</b>, EBITDA margin expansion <b>3–4 pp</b>, capacity expansion to <b>42.36M fibre-km</b> by Jun-2026. Long-term aspiration ₹10,000 Cr revenue (~2× current). Note: the company has scheduled a virtual institutional meeting on <b>26-May-2026</b> for "general business updates" — watch for Q1FY27 colour.
+        </div>
+      </div>
+    </div>
+
+    <!-- Catalysts vs Risks -->
+    <div class="section-head">
+      <h2>Thesis · Catalysts vs Risks</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">DUAL-COLUMN · BULL CASE / BEAR CASE</span>
+    </div>
+    <div class="dual">
+      <div class="col-cat">
+        <div class="col-head">
+          <h3>▲ Catalysts</h3>
+          <span class="ct">BULL CASE</span>
+        </div>
+        <div class="pt"><span class="pt-n">01</span><span class="pt-t"><b>Order book ₹21,200 Cr</b> = 4.3× FY26 revenue. 24–30 months of visibility, growth conversion looks mechanical.</span></div>
+        <div class="pt"><span class="pt-n">02</span><span class="pt-t"><b>EU anti-dumping exemption.</b> While Sterlite, Birla, Aksh pay duties in Europe, HFCL has a clean pass — structural pricing edge.</span></div>
+        <div class="pt"><span class="pt-n">03</span><span class="pt-t"><b>Defence + aerospace optionality.</b> HASPL subsidiary with ₹1,930 Cr aero export book, 1,000-acre AP plant groundbreaking 15-May-2026.</span></div>
+        <div class="pt"><span class="pt-n">04</span><span class="pt-t"><b>AI/data-centre fiber multiplier.</b> A single AI rack needs ~36× more fibre. HFCL expanding to 42.36M FKM by Jun-2026.</span></div>
+        <div class="pt"><span class="pt-n">05</span><span class="pt-t"><b>5G &amp; BharatNet 3.</b> Consortium share in ₹13,000 Cr BharatNet UP+Punjab; first indigenous 5G FWA CPE deployed.</span></div>
+        <div class="pt"><span class="pt-n">06</span><span class="pt-t"><b>Margin expansion runway.</b> 16.7% FY26 EBITDA margin guided toward 20–21% by FY29; would warrant a structural re-rating.</span></div>
+        <div class="pt"><span class="pt-n">07</span><span class="pt-t"><b>6G R&amp;D moat.</b> IIT Delhi consortium for hollow-core fibre — early positioning in next-gen network infra.</span></div>
+        <div class="pt"><span class="pt-n">08</span><span class="pt-t"><b>De-leveraged balance sheet.</b> D/E 0.41×; promoter shares fully released from pledge since 2021.</span></div>
+      </div>
+      <div class="col-risk">
+        <div class="col-head">
+          <h3>▼ Risks</h3>
+          <span class="ct">BEAR CASE</span>
+        </div>
+        <div class="pt"><span class="pt-n">01</span><span class="pt-t"><b>Promoter holding ↓608 bps in 9M.</b> From 34.37% (Mar-25) to 28.29% (Dec-25). They sold while the price was bottoming — single biggest forensic red flag.</span></div>
+        <div class="pt"><span class="pt-n">02</span><span class="pt-t"><b>Warrant issue at ₹74.</b> ₹555 Cr preferential warrants priced when CMP was already ₹95+. Heavily dilutive on conversion — benefits insiders, dilutes retail.</span></div>
+        <div class="pt"><span class="pt-n">03</span><span class="pt-t"><b>5Y revenue CAGR = 2.27%.</b> FY26 may be a true breakout or a single-year base-effect spike. The track record does not yet support extrapolation.</span></div>
+        <div class="pt"><span class="pt-n">04</span><span class="pt-t"><b>Retail at 56% of float.</b> Speculative concentration. Crowd trades unwind faster than they form once momentum cools.</span></div>
+        <div class="pt"><span class="pt-n">05</span><span class="pt-t"><b>71× P/E for telecom hardware.</b> Pricing in flawless execution for 3 years. ANY execution slip in Q1/Q2-FY27 triggers sharp de-rating.</span></div>
+        <div class="pt"><span class="pt-n">06</span><span class="pt-t"><b>EPC working capital drag.</b> CFO/EBITDA at ~52% — BharatNet receivables stretch the balance sheet; ROE stuck at 4.21%.</span></div>
+        <div class="pt"><span class="pt-n">07</span><span class="pt-t"><b>Execution &amp; concentration risk.</b> Reliance on BSNL/Jio/BharatNet for large orders; payment cycles &amp; specification changes can swing quarters.</span></div>
+        <div class="pt"><span class="pt-n">08</span><span class="pt-t"><b>Competition.</b> Sterlite Tech, Tejas Networks, Paramount Comm, global majors (Prysmian, Corning) — pricing power in commoditising fibre is limited.</span></div>
+      </div>
+    </div>
+
+    <!-- Sell-side / experts -->
+    <div class="section-head">
+      <h2>Street View · Analyst Consensus</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">LIMITED SELL-SIDE COVERAGE · 1–5 ANALYSTS</span>
+    </div>
+    <div class="expert-grid">
+      <div class="ex buy">
+        <div class="ex-broker">Univest (Consensus)</div>
+        <div class="ex-call">BUY</div>
+        <div class="ex-tp">₹142–163</div>
+        <div class="ex-up">Upside −1 to +13% · 12M</div>
+      </div>
+      <div class="ex buy">
+        <div class="ex-broker">TradingView Consensus</div>
+        <div class="ex-call">BUY</div>
+        <div class="ex-tp">₹143</div>
+        <div class="ex-up">Range ₹123–163 · 1 analyst</div>
+      </div>
+      <div class="ex hold">
+        <div class="ex-broker">Stockinvest.us</div>
+        <div class="ex-call">BUY (Tech)</div>
+        <div class="ex-tp">₹149</div>
+        <div class="ex-up">Short-term technical · upgraded from Hold</div>
+      </div>
+      <div class="ex hold">
+        <div class="ex-broker">Bitget AI Composite</div>
+        <div class="ex-call">HOLD/SELL</div>
+        <div class="ex-tp">₹149</div>
+        <div class="ex-up">Range ₹81–205 · 41-analyst skew bearish</div>
+      </div>
+      <div class="ex sell">
+        <div class="ex-broker">MarketsMojo</div>
+        <div class="ex-call">STRONG SELL</div>
+        <div class="ex-tp">—</div>
+        <div class="ex-up">Tech-momentum downgrade Nov-2025</div>
+      </div>
+      <div class="ex buy">
+        <div class="ex-broker">Bull Case Target</div>
+        <div class="ex-call">BUY</div>
+        <div class="ex-tp">₹220</div>
+        <div class="ex-up">Upside +52.6% · margins lift to 20%+</div>
+      </div>
+      <div class="ex sell">
+        <div class="ex-broker">Bear Case Target</div>
+        <div class="ex-call">SELL</div>
+        <div class="ex-tp">₹75</div>
+        <div class="ex-up">Downside −48% · valuation reset</div>
+      </div>
+      <div class="ex hold">
+        <div class="ex-broker">Analyst Desk Call</div>
+        <div class="ex-call">HOLD · TRIM</div>
+        <div class="ex-tp">₹125</div>
+        <div class="ex-up">Fair value · book partial profit</div>
+      </div>
+    </div>
+
+    <!-- Industry -->
+    <div class="section-head">
+      <h2>Industry Context</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">SECTOR GROWTH &amp; HFCL POSITIONING</span>
+    </div>
+    <div class="ind">
+      <div class="ind-block">
+        <h4>India Optical Fibre Cable (OFC)</h4>
+        <div class="ind-row"><span class="l">Market Size 2025</span><span class="v">US$ 0.55 Bn</span></div>
+        <div class="ind-row"><span class="l">Projected 2031</span><span class="v">US$ 1.03 Bn</span></div>
+        <div class="ind-row"><span class="l">CAGR (2025–2031)</span><span class="v" style="color:var(--green);">~11%</span></div>
+        <div class="ind-row"><span class="l">Broader Fibre Optics CAGR</span><span class="v">14–17%</span></div>
+        <div class="ind-row"><span class="l">HFCL share (India OFC)</span><span class="v" style="color:var(--copper);">~28–32%</span></div>
+        <div class="ind-row"><span class="l">HFCL rank</span><span class="v">#1 OFC supplier · India</span></div>
+      </div>
+      <div class="ind-block">
+        <h4>Defence &amp; Adjacent Markets</h4>
+        <div class="ind-row"><span class="l">Defence TAM (HFCL products)</span><span class="v">&gt; US$ 10 Bn</span></div>
+        <div class="ind-row"><span class="l">India defence spend</span><span class="v">6.21 lakh Cr (3rd globally)</span></div>
+        <div class="ind-row"><span class="l">Global OFC market 2026</span><span class="v">US$ 89 Bn</span></div>
+        <div class="ind-row"><span class="l">Projected 2030</span><span class="v">US$ 115.8 Bn (6.8% CAGR)</span></div>
+        <div class="ind-row"><span class="l">HFCL share (Global OFC)</span><span class="v" style="color:var(--copper);">~0.7%</span></div>
+        <div class="ind-row"><span class="l">Peer set</span><span class="v">STL · Tejas Networks · Birla Cable</span></div>
+      </div>
+    </div>
+
+    <!-- Verdict -->
+    <div class="verdict">
+      <div class="verdict-head">
+        <h3>Bottom Line</h3>
+        <span class="vh-tag">FINAL CALL · ANALYST DESK</span>
+      </div>
+
+      <div class="rating-bar">
+        <div class="rb-track">
+          <!-- Marker at ~48% (HOLD, slightly defensive bias) -->
+          <div class="rb-marker" style="left:48%;"></div>
+        </div>
+        <div class="rb-labels">
+          <span>STRONG SELL</span>
+          <span>SELL</span>
+          <span>HOLD</span>
+          <span>ACCUMULATE</span>
+          <span>STRONG BUY</span>
+        </div>
+      </div>
+
+      <div class="verdict-text">
+        <b>Rating: HOLD · Trim 25–35% into strength · Re-enter on pullback to ₹105–115.</b>
+        <br><br>
+        The Q4FY26 print is genuinely impressive — revenue +128% YoY, PAT turnaround of ₹268 Cr, EBITDA margin up 600 bps, order book at 4.3× annual revenue. This is not a fake earnings beat or a base-effect mirage. The operational story is real.
+        <br><br>
+        <b>But the stock is no longer cheap, and several signals deserve more weight than the headline beat:</b>
+        <span class="tag r">PROMOTER −608 BPS</span>
+        <span class="tag r">WARRANT @ ₹74</span>
+        <span class="tag r">RETAIL 56%</span>
+        <span class="tag">PE 71×</span>
+        <span class="tag">5Y CAGR 2.3%</span>
+        <br><br>
+        Promoters selling 6 percentage points of their own stake during a downturn — followed by a deeply discounted warrant issue at ₹74 when the market was already at ₹95+ — is the kind of insider behaviour that historically precedes either a major refinancing event or a quiet exit. Either way, retail buyers at ₹144 are paying the price the insiders refused to pay 60 days ago.
+        <br><br>
+        <b>Tactical playbook:</b>
+        <br>• Existing holders → <span class="tag">HOLD core 65–75% · TRIM 25–35%</span> at ₹148–155. Book partial gains, lock in alpha.
+        <br>• Fresh money → <span class="tag r">WAIT</span>. Entry zone ₹105–115 (PEG ~1× + post-warrant dilution priced in).
+        <br>• Aggressive add → only on Q1FY27 print confirming margin expansion (>17% EBITDA margin sustained) AND promoter holding stabilising.
+        <br>• <b>Hard stop ₹118</b> (50DMA + post-Q4 breakout retest). Below that, the rally hypothesis is invalidated.
+        <br><br>
+        <b>Position sizing:</b> Cap at 2–3% of equity portfolio. Treat as a high-beta thematic on India digital infra + defence — not a core compounder until the 5Y CAGR catches up to the Q4 trajectory. <span class="tag g">Re-rate to ACCUMULATE</span> only after two more clean quarters AND promoter holding stops declining.
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <div class="disclaim">
+        <b>Disclaimer:</b> This report is generated for educational and analytical purposes only and is not personalised investment advice. Data sourced from BSE/NSE filings, HFCL investor presentations, Q4FY26 earnings call (30-Apr-2026), and broker reports as of 22-May-2026. Past performance ≠ future results. Smallcap stocks carry elevated liquidity and volatility risk. Consult a SEBI-registered investment adviser before acting. Position sizing and stop-losses are non-negotiable.
+      </div>
+      <button class="copy-btn" id="copyBtn" onclick="copyReport()">⧉ Copy Report Summary</button>
+    </div>
+
+  </div>
+</section>
+
+<script>
+function copyReport(){
+  const summary = `HFCL · NSE 500183 · Risk Score Report (Post-Q4FY26)
+─────────────────────────────────────────────────
+CMP: ₹144.19   1Y Return: +63.7%   Mcap: ₹21,323 Cr
+P/E: 71.1×   P/B: 4.36×   ROE: 4.21%   D/E: 0.41
+EPS (FY26): ₹2.20   Div Yield: 0.14%
+
+COMPOSITE RISK SCORE: 58 / 100  (Moderate-High)
+  Valuation Risk:    76 (×0.35)  ← elevated
+  Financial Health:  52 (×0.35)  ← promoter dilution
+  Growth Risk:       25 (×0.30)  ← strong, low risk
+
+Q4FY26 PRINT (30-Apr-2026)
+  Revenue ₹1,824 Cr  (+127.8% YoY, +50.7% QoQ)
+  EBITDA  ₹337 Cr    (18.5% margin · vs −₹22 Cr LY)
+  PAT     ₹184 Cr    (vs LOSS of ₹83 Cr in Q4FY25)
+  Final Dividend FY26: ₹0.20/share
+
+FY26 FULL YEAR
+  Revenue ₹4,949 Cr  (+21.77% YoY)
+  EBITDA  ₹827 Cr    (margin 16.7%)
+  PAT     ₹329 Cr    (+90.14% YoY)
+  Order Book ₹21,200 Cr (4.3× revenue)
+
+KEY RED FLAGS
+  • Promoter holding ↓ 34.37% → 28.29% in 9 months
+  • Warrant issue at ₹74 (vs CMP ₹144) = dilution
+  • 5Y revenue CAGR only 2.27%
+  • Retail holding 56% (crowd trade)
+  • P/E 71× for telecom hardware/EPC
+
+STREET VIEW (limited coverage · ~5 analysts)
+  Univest consensus: ₹142–163 (BUY)
+  Bull case: ₹220 | Bear case: ₹75
+  MarketsMojo: STRONG SELL (tech-momentum)
+  Desk fair value: ₹125
+
+INDUSTRY
+  India OFC CAGR (2025–31): ~11%
+  India Fibre Optics CAGR: 14–17%
+  HFCL share of India OFC: ~28–32% (#1)
+  Defence TAM: > US$ 10 Bn
+
+VERDICT: HOLD · TRIM 25–35% INTO STRENGTH
+  Entry zone (fresh): ₹105–115
+  Hard stop: ₹118
+  Position cap: 2–3% of equity book
+  Catalysts: Order execution, defence ramp, margin lift
+  Risks: Promoter exit, warrant dilution, 5Y CAGR
+  Re-rate trigger: 2 clean quarters + promoter stable
+
+Generated: 22-May-2026 · Report ID HFCL-RR-2705-FY26`;
+  navigator.clipboard.writeText(summary).then(()=>{
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copied to Clipboard';
+    btn.classList.add('copied');
+    setTimeout(()=>{
+      btn.textContent = '⧉ Copy Report Summary';
+      btn.classList.remove('copied');
+    }, 2400);
+  });
+}
+</script>
+</body>
+</html>

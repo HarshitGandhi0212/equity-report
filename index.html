@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Equity Research · Reports by Harshit Gandhi</title>
+<meta name="description" content="Independent equity research reports on Indian stocks. Forensic analysis, risk scoring, and opinionated calls. Educational content only — not investment advice.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090d;--bg-2:#0d0f15;--bg-3:#11141c;
+    --line:#1d212c;--line-2:#262b38;
+    --text:#e6e8ee;--text-2:#9aa0ad;--text-3:#5a6071;
+    --green:#3ddc97;--red:#ff5470;--amber:#ffb547;--gold:#d4af37;--copper:#cb6843;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --sans:'DM Sans',system-ui,sans-serif;
+    --serif:'Fraunces',Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(124,193,255,.04), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(212,175,55,.03), transparent 50%),
+      linear-gradient(180deg, var(--bg) 0%, #06070b 100%);
+    min-height:100vh;padding:40px 24px;position:relative;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image:radial-gradient(ellipse at 50% 0%, #000 30%, transparent 80%);
+  }
+  .wrap{max-width:1100px;margin:0 auto;position:relative;z-index:1;}
+
+  .disclaimer-banner{
+    background:linear-gradient(90deg, rgba(255,84,112,.08), rgba(255,181,71,.05));
+    border:1px solid rgba(255,84,112,.25);border-radius:2px;
+    padding:14px 20px;margin-bottom:40px;
+    display:flex;align-items:center;gap:14px;
+    font-family:var(--mono);font-size:11px;color:var(--text-2);letter-spacing:.3px;line-height:1.5;
+  }
+  .disclaimer-banner .badge{
+    font-size:9px;letter-spacing:2px;color:var(--red);
+    border:1px solid var(--red);padding:3px 8px;border-radius:1px;
+    text-transform:uppercase;font-weight:600;flex-shrink:0;
+  }
+  .disclaimer-banner b{color:var(--text);}
+
+  .head{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    padding-bottom:32px;border-bottom:1px solid var(--line);margin-bottom:48px;gap:24px;
+  }
+  .brand{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:18px;}
+  .brand .dot{display:inline-block;width:6px;height:6px;background:var(--copper);border-radius:50%;margin-right:8px;vertical-align:middle;}
+  h1{font-family:var(--serif);font-weight:600;font-size:54px;line-height:1.02;letter-spacing:-1.5px;color:var(--text);max-width:680px;}
+  h1 em{font-style:italic;color:var(--copper);font-weight:400;}
+  .lede{font-size:14.5px;color:var(--text-2);line-height:1.6;max-width:560px;margin-top:18px;}
+  .author-line{font-family:var(--mono);font-size:10.5px;color:var(--text-3);letter-spacing:1.2px;margin-top:20px;text-transform:uppercase;}
+  .author-line b{color:var(--text);font-weight:500;}
+  .meta-block{text-align:right;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;line-height:1.9;flex-shrink:0;}
+  .meta-block b{color:var(--text);font-weight:500;}
+  @media(max-width:780px){
+    .head{flex-direction:column;}
+    .meta-block{text-align:left;}
+    h1{font-size:36px;}
+  }
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:48px;border:1px solid var(--line);border-radius:2px;background:var(--bg-3);}
+  @media(max-width:780px){.stats{grid-template-columns:repeat(2,1fr);}}
+  .stat{padding:18px 22px;border-right:1px solid var(--line);}
+  .stat:last-child{border-right:none;}
+  @media(max-width:780px){
+    .stat:nth-child(2){border-right:none;}
+    .stat:nth-child(1),.stat:nth-child(2){border-bottom:1px solid var(--line);}
+  }
+  .stat-l{font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;}
+  .stat-v{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text);margin-top:6px;letter-spacing:-.5px;}
+  .stat-s{font-size:11px;color:var(--text-2);margin-top:2px;}
+
+  .section-head{display:flex;align-items:baseline;gap:16px;margin:0 0 22px;}
+  .section-head h2{font-family:var(--serif);font-weight:600;font-size:24px;letter-spacing:-.4px;}
+  .section-head .sh-rule{flex:1;height:1px;background:linear-gradient(90deg, var(--line-2), transparent);}
+  .section-head .sh-tag{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.8px;text-transform:uppercase;}
+
+  .reports{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:780px){.reports{grid-template-columns:1fr;}}
+  .report-card{
+    display:block;text-decoration:none;color:inherit;
+    background:var(--bg-3);border:1px solid var(--line);border-radius:2px;
+    padding:24px;position:relative;overflow:hidden;
+    transition:all .25s cubic-bezier(.4,0,.2,1);
+  }
+  .report-card:hover{border-color:var(--copper);transform:translateY(-2px);background:linear-gradient(180deg, #14171f 0%, var(--bg-3) 100%);}
+  .rc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+  .rc-ticker{font-family:var(--mono);font-weight:700;font-size:24px;letter-spacing:.5px;color:var(--text);}
+  .rc-exchange{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.2px;border:1px solid var(--line-2);padding:2px 6px;display:inline-block;margin-top:4px;}
+  .rc-rating{text-align:right;}
+  .rc-rating-l{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;}
+  .rc-rating-v{font-family:var(--mono);font-size:14px;font-weight:600;margin-top:4px;letter-spacing:1.2px;}
+  .rc-rating-v.hold{color:var(--amber);}
+  .rc-company{font-size:13px;color:var(--text-2);margin-bottom:18px;}
+  .rc-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:14px;}
+  .rc-m-l{font-family:var(--mono);font-size:8.5px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .rc-m-v{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text);margin-top:3px;}
+  .rc-thesis{font-size:12px;color:var(--text-2);line-height:1.55;margin-bottom:14px;}
+  .rc-foot{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  .rc-arrow{color:var(--copper);font-family:var(--mono);transition:transform .25s;}
+  .report-card:hover .rc-arrow{transform:translateX(4px);}
+  .rc-risk{position:absolute;top:0;right:0;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;background:var(--bg-2);color:var(--amber);padding:6px 12px;border-bottom:1px solid var(--line);border-left:1px solid var(--line);text-transform:uppercase;}
+
+  .about{margin-top:60px;padding:32px;border:1px solid var(--line);border-radius:2px;background:linear-gradient(135deg, #0e1219 0%, var(--bg-3) 100%);}
+  .about h3{font-family:var(--serif);font-size:20px;font-weight:600;margin-bottom:14px;}
+  .about p{font-size:13px;color:var(--text-2);line-height:1.65;margin-bottom:12px;}
+  .about p:last-child{margin-bottom:0;}
+  .about b{color:var(--text);font-weight:500;}
+
+  .full-disclaimer{margin-top:32px;padding:28px;border:1px solid rgba(255,84,112,.2);border-radius:2px;background:linear-gradient(135deg, #14080a 0%, #0e0508 100%);}
+  .full-disclaimer h3{font-family:var(--serif);font-size:18px;font-weight:600;margin-bottom:18px;color:var(--red);display:flex;align-items:center;gap:10px;}
+  .full-disclaimer h3::before{content:"\26A0";font-size:18px;}
+  .full-disclaimer p{font-size:12px;color:var(--text-2);line-height:1.7;margin-bottom:12px;}
+  .full-disclaimer p:last-child{margin-bottom:0;}
+  .full-disclaimer b{color:var(--text);font-weight:500;}
+  .full-disclaimer .key{color:var(--red);font-weight:500;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-right:6px;}
+
+  .author-card{margin-top:48px;padding:28px 32px;border:1px solid var(--line);border-radius:2px;background:var(--bg-3);display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;}
+  @media(max-width:780px){.author-card{grid-template-columns:1fr;}}
+  .ac-left .ac-label{font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+  .ac-left .ac-name{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--text);margin-bottom:6px;}
+  .ac-left .ac-bio{font-size:13px;color:var(--text-2);line-height:1.55;max-width:520px;}
+  .ac-right{font-family:var(--mono);font-size:11.5px;color:var(--text-2);text-align:right;line-height:2;}
+  @media(max-width:780px){.ac-right{text-align:left;}}
+  .ac-right a{color:var(--copper);text-decoration:none;border-bottom:1px dashed var(--copper);padding-bottom:1px;}
+  .ac-right a:hover{color:var(--text);border-bottom-color:var(--text);}
+  .ac-right .ar-label{color:var(--text-3);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;margin-right:8px;}
+
+  .footer{margin-top:32px;padding-top:24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .footer a{color:var(--copper);text-decoration:none;border-bottom:1px dashed var(--copper);padding-bottom:1px;}
+  .footer a:hover{color:var(--text);border-bottom-color:var(--text);}
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="disclaimer-banner">
+      <span class="badge">Important</span>
+      <span><b>Educational content only &mdash; not investment advice.</b> This site contains personal research and learning notes by Harshit Gandhi, who is <b>NOT a SEBI-registered Investment Adviser or Research Analyst</b>. Nothing here is a recommendation to buy, sell, or hold any security. See full disclaimer below.</span>
+    </div>
+
+    <div class="head">
+      <div>
+        <div class="brand"><span class="dot"></span>EQUITY RESEARCH DESK</div>
+        <h1>Independent <em>equity research</em><br>by Harshit Gandhi.</h1>
+        <p class="lede">Forensic, opinionated, and unafraid to disagree with the Street. Each report stress-tests valuation, balance-sheet hygiene, and growth durability against a composite risk score before issuing a view.</p>
+        <div class="author-line">REPORTS BY &middot; <b>HARSHIT GANDHI</b> &middot; INDEPENDENT EQUITY RESEARCH &middot; LEARNING IN PUBLIC</div>
+      </div>
+      <div class="meta-block">
+        <div>STATUS &middot; <b style="color:var(--green);">&bull; LIVE</b></div>
+        <div>UPDATED &middot; <b>MAY 2026</b></div>
+        <div>COVERAGE &middot; <b>2 STOCKS</b></div>
+        <div>FOCUS &middot; <b>NSE / INDIA</b></div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-l">Reports Published</div>
+        <div class="stat-v">02</div>
+        <div class="stat-s">Initiations &middot; FY26 close</div>
+      </div>
+      <div class="stat">
+        <div class="stat-l">Avg Risk Score</div>
+        <div class="stat-v">56 / 100</div>
+        <div class="stat-s">Moderate &middot; valuation-led</div>
+      </div>
+      <div class="stat">
+        <div class="stat-l">Current Bias</div>
+        <div class="stat-v" style="color:var(--amber);">CAUTIOUS</div>
+        <div class="stat-s">2&times; HOLD &middot; 0&times; BUY</div>
+      </div>
+      <div class="stat">
+        <div class="stat-l">Methodology</div>
+        <div class="stat-v">35 / 35 / 30</div>
+        <div class="stat-s">Val &middot; Health &middot; Growth</div>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <h2>Published Reports</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">CLICK TO OPEN</span>
+    </div>
+
+    <div class="reports">
+      <a class="report-card" href="reports/biocon.html">
+        <div class="rc-risk">RISK &middot; 54</div>
+        <div class="rc-top">
+          <div>
+            <div class="rc-ticker">BIOCON</div>
+            <div class="rc-exchange">NSE &bull; 532523</div>
+          </div>
+          <div class="rc-rating">
+            <div class="rc-rating-l">View</div>
+            <div class="rc-rating-v hold">HOLD</div>
+          </div>
+        </div>
+        <div class="rc-company">Biocon Ltd &middot; Innovation-led Global Biopharma</div>
+        <div class="rc-metrics">
+          <div><div class="rc-m-l">CMP</div><div class="rc-m-v">&#8377;425.75</div></div>
+          <div><div class="rc-m-l">P/E (TTM)</div><div class="rc-m-v">150.98&times;</div></div>
+          <div><div class="rc-m-l">Fair Value</div><div class="rc-m-v">&#8377;435</div></div>
+        </div>
+        <div class="rc-thesis">Operational turnaround real but priced in. 150&times; P/E with 4.68% ROE is asymmetric to the downside. Personal view: accumulate only below &#8377;370.</div>
+        <div class="rc-foot">
+          <span>FY26 &middot; MAY 2026</span>
+          <span class="rc-arrow">OPEN &rarr;</span>
+        </div>
+      </a>
+
+      <a class="report-card" href="reports/hfcl.html">
+        <div class="rc-risk">RISK &middot; 58</div>
+        <div class="rc-top">
+          <div>
+            <div class="rc-ticker">HFCL</div>
+            <div class="rc-exchange">NSE &bull; 500183</div>
+          </div>
+          <div class="rc-rating">
+            <div class="rc-rating-l">View</div>
+            <div class="rc-rating-v hold">HOLD &middot; TRIM</div>
+          </div>
+        </div>
+        <div class="rc-company">HFCL Ltd &middot; Telecom &middot; OFC &middot; Defence Electronics</div>
+        <div class="rc-metrics">
+          <div><div class="rc-m-l">CMP</div><div class="rc-m-v">&#8377;144.19</div></div>
+          <div><div class="rc-m-l">P/E (TTM)</div><div class="rc-m-v">71.1&times;</div></div>
+          <div><div class="rc-m-l">Fair Value</div><div class="rc-m-v">&#8377;125</div></div>
+        </div>
+        <div class="rc-thesis">Q4 print is real (+128% YoY), but promoter holding down 608 bps + warrant dilution at &#8377;74. Personal view: trim into strength. Re-evaluate at &#8377;105&ndash;115.</div>
+        <div class="rc-foot">
+          <span>POST-Q4FY26 &middot; MAY 2026</span>
+          <span class="rc-arrow">OPEN &rarr;</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="about">
+      <h3>Methodology &middot; Risk Score (0&ndash;100)</h3>
+      <p>Each report computes a <b>weighted composite risk score</b> across three axes: <b>Valuation (35%)</b> covering P/E, P/B, EV/EBITDA, PEG, yield and Mcap/Sales benchmarked vs sector medians; <b>Financial Health (35%)</b> covering leverage, interest coverage, cash conversion, ownership stability and capital efficiency; <b>Growth (30%)</b> covering top-line, EBITDA, margin trajectory and order/pipeline visibility.</p>
+      <p>Scores above 60 = elevated risk. 40&ndash;60 = moderate. Below 40 = balanced risk-reward. The score is a starting framework for personal analysis, not a verdict &mdash; every report layers forensic and qualitative judgement on top.</p>
+      <p><b>What this is:</b> a personal learning project and public record of analytical work. <b>What it isn't:</b> a tipping service, a recommendation engine, or professional investment advice. Disagreement with the Street is the entire point of independent thinking &mdash; but disagreement is personal opinion, not authority.</p>
+    </div>
+
+    <div class="full-disclaimer">
+      <h3>Full Disclaimer &middot; Read Before Acting on Any Content</h3>
+      <p><span class="key">Educational Content Only.</span> All reports, analysis, and commentary on this site are prepared solely for personal learning and educational illustration. They do <b>not</b> constitute investment advice, financial advice, trading recommendations, or solicitations to buy or sell any security under any jurisdiction.</p>
+      <p><span class="key">Not a Registered Adviser.</span> Harshit Gandhi is <b>not</b> a SEBI-registered Investment Adviser (RIA), Research Analyst (RA), or Portfolio Manager. The author holds no professional licence to provide investment advice and is not authorised to do so under SEBI (Investment Advisers) Regulations, 2013 or SEBI (Research Analysts) Regulations, 2014.</p>
+      <p><span class="key">No Liability.</span> The author accepts no responsibility for any loss, damage, or adverse consequence arising from the use of any information on this site. Investing in equity markets involves substantial risk, including the risk of permanent capital loss. Past performance is not indicative of future results.</p>
+      <p><span class="key">Personal Views Only.</span> All "ratings", "fair value" estimates, and "verdicts" expressed are personal opinions of the author at the time of writing, based on publicly available information. They may be wrong, may change without notice, and should not be relied upon for any financial decision.</p>
+      <p><span class="key">Possible Holdings.</span> The author may or may not hold positions in the securities discussed. No view is taken on the suitability of any security for any particular reader. <b>Always consult a SEBI-registered investment adviser, conduct your own due diligence, and read scheme/offer documents carefully before investing.</b></p>
+      <p><span class="key">Data Accuracy.</span> Data is sourced from public filings (BSE/NSE, company investor disclosures, broker reports). While every effort is made to ensure accuracy, no warranty is given. Markets move; numbers in reports become stale.</p>
+      <p style="margin-top:18px;font-size:11px;color:var(--text-3);">By accessing this site, you acknowledge you have read, understood, and accepted this disclaimer in full.</p>
+    </div>
+
+    <div class="author-card">
+      <div class="ac-left">
+        <div class="ac-label">REPORT BY</div>
+        <div class="ac-name">Harshit Gandhi</div>
+        <div class="ac-bio">Independent equity research, quantitative trading systems, and forensic financial analysis. Based in Mumbai. Learning in public &mdash; all reports represent personal opinion only.</div>
+      </div>
+      <div class="ac-right">
+        <div><span class="ar-label">EMAIL</span><a href="mailto:gandhiharshit2004@gmail.com">gandhiharshit2004@gmail.com</a></div>
+        <div><span class="ar-label">SOURCE</span><a href="https://github.com/HarshitGandhi0212/equity-report">github.com/HarshitGandhi0212</a></div>
+        <div><span class="ar-label">UPDATED</span>22 MAY 2026</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>&copy; 2026 HARSHIT GANDHI &middot; EDUCATIONAL CONTENT ONLY &middot; NOT SEBI-REGISTERED ADVICE</div>
+      <div><a href="https://github.com/HarshitGandhi0212/equity-report">VIEW SOURCE &uarr;</a></div>
+    </div>
+
+  </div>
+</body>
+</html>

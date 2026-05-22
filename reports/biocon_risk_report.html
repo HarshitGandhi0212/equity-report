@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BIOCON • Risk Score Report • FY26</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#08090d;
+    --bg-2:#0d0f15;
+    --bg-3:#11141c;
+    --line:#1d212c;
+    --line-2:#262b38;
+    --text:#e6e8ee;
+    --text-2:#9aa0ad;
+    --text-3:#5a6071;
+    --green:#3ddc97;
+    --green-soft:#10271f;
+    --red:#ff5470;
+    --red-soft:#2a121a;
+    --amber:#ffb547;
+    --amber-soft:#2a1e0e;
+    --accent:#7cc1ff;
+    --gold:#d4af37;
+    --mono:'JetBrains Mono', ui-monospace, monospace;
+    --sans:'DM Sans', system-ui, sans-serif;
+    --serif:'Fraunces', Georgia, serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv11";}
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(124,193,255,.04), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(255,181,71,.03), transparent 50%),
+      linear-gradient(180deg, var(--bg) 0%, #06070b 100%);
+    min-height:100vh;
+    padding:24px 16px 80px;
+  }
+  .grid-bg::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.012) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.012) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image:radial-gradient(ellipse at 50% 0%, #000 30%, transparent 80%);
+  }
+  .page{
+    position:relative;z-index:1;
+    max-width:1280px;margin:0 auto 32px;
+    background:linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
+    border:1px solid var(--line);
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .page-inner{padding:28px 32px;}
+
+  /* ============ TOP BAR ============ */
+  .topbar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 32px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(90deg, #0a0c11, #0d0f15);
+  }
+  .topbar-left{display:flex;align-items:center;gap:16px;}
+  .ticker-block{
+    display:flex;align-items:baseline;gap:10px;
+  }
+  .ticker{
+    font-family:var(--mono);font-weight:700;font-size:22px;letter-spacing:.5px;color:var(--text);
+  }
+  .exchange{
+    font-family:var(--mono);font-size:10px;color:var(--text-3);
+    border:1px solid var(--line-2);padding:2px 6px;border-radius:2px;
+    letter-spacing:1px;
+  }
+  .company{font-size:13px;color:var(--text-2);font-weight:400;}
+  .price-block{display:flex;align-items:baseline;gap:14px;}
+  .ltp{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--text);}
+  .chg{font-family:var(--mono);font-size:13px;font-weight:500;}
+  .chg.dn{color:var(--red);}
+  .chg.up{color:var(--green);}
+  .meta{
+    display:flex;gap:18px;font-family:var(--mono);font-size:10.5px;color:var(--text-3);
+    letter-spacing:.5px;text-transform:uppercase;
+  }
+  .meta span b{color:var(--text-2);font-weight:500;}
+
+  /* ============ REPORT HEADER ============ */
+  .report-head{
+    padding:28px 32px 18px;
+    display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;
+    border-bottom:1px solid var(--line);
+  }
+  .report-title{
+    font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.05;
+    letter-spacing:-.5px;color:var(--text);
+  }
+  .report-title em{font-style:italic;color:var(--gold);font-weight:400;}
+  .report-sub{
+    font-size:12.5px;color:var(--text-2);margin-top:8px;max-width:640px;line-height:1.55;
+  }
+  .stamp{
+    text-align:right;font-family:var(--mono);font-size:10px;color:var(--text-3);
+    letter-spacing:1.2px;text-transform:uppercase;line-height:1.8;
+  }
+  .stamp b{color:var(--text);font-weight:500;}
+
+  /* ============ MAIN GRID ============ */
+  .row{display:grid;gap:20px;}
+  .row.two{grid-template-columns:1.2fr 1fr;}
+  .row.three{grid-template-columns:repeat(3,1fr);}
+  .row.six{grid-template-columns:repeat(6,1fr);}
+  @media (max-width:980px){
+    .row.two,.row.three{grid-template-columns:1fr;}
+    .row.six{grid-template-columns:repeat(2,1fr);}
+  }
+
+  /* ============ RISK GAUGE ============ */
+  .panel{
+    background:var(--bg-3);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:20px;
+    position:relative;
+  }
+  .panel-label{
+    font-family:var(--mono);font-size:9.5px;letter-spacing:1.8px;
+    text-transform:uppercase;color:var(--text-3);margin-bottom:14px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .panel-label .pl-tag{
+    background:var(--line);color:var(--text-2);padding:2px 7px;border-radius:1px;
+    font-size:9px;letter-spacing:1px;
+  }
+
+  .gauge-wrap{
+    display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;
+  }
+  .gauge{position:relative;width:200px;height:120px;}
+  .gauge svg{width:100%;height:100%;}
+  .gauge-num{
+    position:absolute;left:50%;bottom:6px;transform:translateX(-50%);
+    text-align:center;
+  }
+  .gauge-num .n{font-family:var(--mono);font-weight:700;font-size:42px;color:var(--text);line-height:1;}
+  .gauge-num .max{font-family:var(--mono);font-size:11px;color:var(--text-3);}
+  .gauge-band{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--amber);margin-top:6px;text-transform:uppercase;}
+  .gauge-side .gs-title{
+    font-family:var(--serif);font-size:22px;font-weight:600;color:var(--text);line-height:1.1;
+  }
+  .gauge-side .gs-sub{font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.5;}
+  .gauge-side .gs-meta{
+    margin-top:14px;display:flex;gap:18px;font-family:var(--mono);font-size:10px;color:var(--text-3);
+    letter-spacing:.8px;text-transform:uppercase;
+  }
+  .gauge-side .gs-meta b{color:var(--text);font-weight:500;}
+
+  /* ============ KPI STRIP ============ */
+  .kpi{
+    padding:14px 14px;
+    border:1px solid var(--line);
+    background:linear-gradient(180deg, #0c0e14, #0a0c11);
+    border-radius:2px;
+  }
+  .kpi .k-label{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;}
+  .kpi .k-val{font-family:var(--mono);font-size:18px;font-weight:600;color:var(--text);margin-top:6px;letter-spacing:-.5px;}
+  .kpi .k-sub{font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:4px;}
+  .kpi .k-sub.up{color:var(--green);}
+  .kpi .k-sub.dn{color:var(--red);}
+
+  /* ============ PRICE CHART ============ */
+  .chart-wrap{padding:6px 0 0;}
+  .chart-head{
+    display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;
+  }
+  .chart-head .ch-title{font-family:var(--serif);font-size:18px;font-weight:600;}
+  .chart-head .ch-meta{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  svg.price-chart{width:100%;height:260px;display:block;}
+  .chart-legend{display:flex;gap:18px;margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  .chart-legend .lg{display:flex;align-items:center;gap:6px;}
+  .chart-legend .dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  /* ============ CARDS (Val / Health / Growth) ============ */
+  .section-head{
+    display:flex;align-items:center;gap:16px;margin:34px 0 14px;
+  }
+  .section-head h2{
+    font-family:var(--serif);font-weight:600;font-size:20px;letter-spacing:-.3px;
+  }
+  .section-head .sh-rule{flex:1;height:1px;background:linear-gradient(90deg, var(--line-2), transparent);}
+  .section-head .sh-tag{
+    font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:1.5px;text-transform:uppercase;
+  }
+
+  .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  @media (max-width:780px){.card-grid{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:540px){.card-grid{grid-template-columns:1fr;}}
+
+  .mcard{
+    background:var(--bg-3);border:1px solid var(--line);border-left:3px solid var(--line-2);
+    padding:14px 14px 16px;border-radius:2px;position:relative;
+  }
+  .mcard.green{border-left-color:var(--green);background:linear-gradient(180deg, #0c1612 0%, var(--bg-3) 100%);}
+  .mcard.red{border-left-color:var(--red);background:linear-gradient(180deg, #16100f 0%, var(--bg-3) 100%);}
+  .mcard.amber{border-left-color:var(--amber);background:linear-gradient(180deg, #161108 0%, var(--bg-3) 100%);}
+
+  .mc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .mc-name{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .mc-flag{
+    font-family:var(--mono);font-size:9px;font-weight:600;padding:2px 6px;border-radius:1px;letter-spacing:1px;
+  }
+  .mc-flag.green{background:var(--green-soft);color:var(--green);}
+  .mc-flag.red{background:var(--red-soft);color:var(--red);}
+  .mc-flag.amber{background:var(--amber-soft);color:var(--amber);}
+  .mc-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);margin-top:8px;letter-spacing:-.5px;}
+  .mc-bench{font-family:var(--mono);font-size:10.5px;color:var(--text-2);margin-top:3px;}
+  .mc-note{font-size:11.5px;color:var(--text-2);line-height:1.5;margin-top:8px;}
+
+  /* ============ SCORE BREAKDOWN ============ */
+  .breakdown{margin-top:20px;}
+  .bd-row{display:grid;grid-template-columns:120px 1fr 60px 50px;gap:14px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);}
+  .bd-row:last-child{border-bottom:none;}
+  .bd-label{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-2);}
+  .bd-bar{height:8px;background:var(--line);border-radius:1px;overflow:hidden;position:relative;}
+  .bd-bar > div{height:100%;background:linear-gradient(90deg, var(--accent), var(--gold));border-radius:1px;}
+  .bd-bar.high > div{background:linear-gradient(90deg, var(--red), #ff8a5b);}
+  .bd-bar.mid > div{background:linear-gradient(90deg, var(--amber), #ffd685);}
+  .bd-bar.low > div{background:linear-gradient(90deg, var(--green), #8be9c4);}
+  .bd-score{font-family:var(--mono);font-size:13px;font-weight:600;text-align:right;color:var(--text);}
+  .bd-weight{font-family:var(--mono);font-size:10px;color:var(--text-3);text-align:right;letter-spacing:1px;}
+
+  /* ============ PAGE 2 ============ */
+  .page-no{
+    position:absolute;top:10px;right:14px;font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:2px;
+  }
+
+  /* Quarterly table */
+  .qtable{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;}
+  .qtable th, .qtable td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);}
+  .qtable th:first-child, .qtable td:first-child{text-align:left;}
+  .qtable th{
+    font-size:9.5px;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;font-weight:500;
+    background:#0a0c11;border-bottom:1px solid var(--line-2);
+  }
+  .qtable td{color:var(--text-2);}
+  .qtable td:first-child{color:var(--text);font-weight:500;}
+  .qtable .pos{color:var(--green);}
+  .qtable .neg{color:var(--red);}
+  .qtable tr.latest td{background:#0d1118;color:var(--text);font-weight:600;}
+  .qtable tr.latest td:first-child{color:var(--gold);}
+
+  /* Earnings card */
+  .earn-card{
+    background:linear-gradient(135deg, #0e1219 0%, var(--bg-3) 100%);
+    border:1px solid var(--line);padding:20px;border-radius:2px;
+  }
+  .earn-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;}
+  .earn-head h3{font-family:var(--serif);font-size:18px;font-weight:600;}
+  .earn-head .tag{font-family:var(--mono);font-size:9px;color:var(--gold);letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--gold);padding:2px 6px;}
+  .earn-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;}
+  .earn-grid > div{}
+  .eg-lbl{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+  .eg-val{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--text);margin-top:4px;}
+  .eg-sub{font-family:var(--mono);font-size:10px;margin-top:2px;}
+  .earn-body{font-size:12.5px;color:var(--text-2);line-height:1.6;border-top:1px dashed var(--line);padding-top:12px;}
+  .earn-body b{color:var(--text);font-weight:500;}
+
+  /* Catalysts vs Risks */
+  .dual{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:780px){.dual{grid-template-columns:1fr;}}
+  .col-cat, .col-risk{padding:18px;border:1px solid var(--line);border-radius:2px;}
+  .col-cat{background:linear-gradient(180deg, #0c1612 0%, var(--bg-3) 100%);border-top:2px solid var(--green);}
+  .col-risk{background:linear-gradient(180deg, #16100f 0%, var(--bg-3) 100%);border-top:2px solid var(--red);}
+  .col-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;}
+  .col-head h3{font-family:var(--serif);font-size:17px;font-weight:600;}
+  .col-cat .col-head h3{color:var(--green);}
+  .col-risk .col-head h3{color:var(--red);}
+  .col-head .ct{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.5px;}
+  .pt{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);}
+  .pt:last-child{border-bottom:none;}
+  .pt .pt-n{font-family:var(--mono);font-size:10px;color:var(--text-3);}
+  .pt .pt-t{font-size:12.5px;color:var(--text-2);line-height:1.5;}
+  .pt .pt-t b{color:var(--text);font-weight:500;}
+
+  /* Expert grid */
+  .expert-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  @media (max-width:780px){.expert-grid{grid-template-columns:repeat(2,1fr);}}
+  .ex{
+    border:1px solid var(--line);padding:12px;background:var(--bg-3);border-radius:2px;
+    border-top:2px solid var(--text-3);
+  }
+  .ex.buy{border-top-color:var(--green);}
+  .ex.sell{border-top-color:var(--red);}
+  .ex.hold{border-top-color:var(--amber);}
+  .ex-broker{font-family:var(--mono);font-size:10px;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  .ex-call{font-family:var(--mono);font-size:11px;font-weight:600;margin-top:6px;letter-spacing:1.5px;}
+  .ex.buy .ex-call{color:var(--green);}
+  .ex.sell .ex-call{color:var(--red);}
+  .ex.hold .ex-call{color:var(--amber);}
+  .ex-tp{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:6px;letter-spacing:-.3px;}
+  .ex-up{font-family:var(--mono);font-size:10px;color:var(--text-2);margin-top:2px;}
+
+  /* Industry */
+  .ind{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:780px){.ind{grid-template-columns:1fr;}}
+  .ind-block{padding:16px;border:1px solid var(--line);background:var(--bg-3);border-radius:2px;}
+  .ind-block h4{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:10px;}
+  .ind-row{display:flex;justify-content:space-between;padding:7px 0;font-family:var(--mono);font-size:11px;border-bottom:1px dashed var(--line);}
+  .ind-row:last-child{border-bottom:none;}
+  .ind-row .l{color:var(--text-3);letter-spacing:1px;text-transform:uppercase;}
+  .ind-row .v{color:var(--text);font-weight:600;}
+
+  /* Verdict */
+  .verdict{
+    margin-top:24px;
+    background:linear-gradient(135deg, #0e1219 0%, #0a0c11 100%);
+    border:1px solid var(--line);border-radius:2px;padding:24px;
+    position:relative;overflow:hidden;
+  }
+  .verdict::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(600px 200px at 100% 0%, rgba(212,175,55,.06), transparent 60%);
+    pointer-events:none;
+  }
+  .verdict-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;position:relative;}
+  .verdict-head h3{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.3px;}
+  .verdict-head .vh-tag{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;border:1px solid var(--gold);padding:3px 8px;}
+
+  .rating-bar{margin:14px 0 16px;position:relative;}
+  .rb-track{height:32px;background:linear-gradient(90deg, var(--red) 0%, #ff8a5b 25%, var(--amber) 50%, #8be9c4 75%, var(--green) 100%);border-radius:2px;position:relative;}
+  .rb-marker{
+    position:absolute;top:-6px;bottom:-6px;width:3px;background:var(--text);
+    box-shadow:0 0 0 2px var(--bg);
+  }
+  .rb-marker::after{
+    content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+    width:0;height:0;border:6px solid transparent;border-top-color:var(--text);
+  }
+  .rb-labels{display:flex;justify-content:space-between;margin-top:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;color:var(--text-3);text-transform:uppercase;}
+
+  .verdict-text{font-size:13.5px;color:var(--text-2);line-height:1.65;position:relative;}
+  .verdict-text b{color:var(--text);font-weight:500;}
+  .verdict-text .tag{
+    display:inline-block;padding:1px 6px;font-family:var(--mono);font-size:10px;
+    letter-spacing:1px;background:var(--green-soft);color:var(--green);border-radius:1px;margin:0 2px;
+  }
+
+  /* Footer / clipboard */
+  .actions{
+    margin-top:24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+    padding-top:18px;border-top:1px solid var(--line);
+  }
+  .disclaim{font-family:var(--mono);font-size:9.5px;color:var(--text-3);letter-spacing:.8px;line-height:1.6;max-width:780px;}
+  .copy-btn{
+    background:transparent;color:var(--gold);border:1px solid var(--gold);
+    font-family:var(--mono);font-size:10.5px;letter-spacing:2px;text-transform:uppercase;
+    padding:10px 18px;cursor:pointer;border-radius:2px;transition:all .2s;
+  }
+  .copy-btn:hover{background:var(--gold);color:var(--bg);}
+  .copy-btn.copied{background:var(--green);color:var(--bg);border-color:var(--green);}
+
+  /* Misc */
+  .num-pos{color:var(--green);}
+  .num-neg{color:var(--red);}
+  .micro{font-family:var(--mono);font-size:9px;color:var(--text-3);letter-spacing:1.2px;text-transform:uppercase;}
+
+</style>
+</head>
+<body class="grid-bg">
+
+<!-- =========================== PAGE 1 =========================== -->
+<section class="page">
+  <span class="page-no">PG 01 / 02</span>
+
+  <!-- Stock bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="ticker-block">
+        <span class="ticker">BIOCON</span>
+        <span class="exchange">NSE • 532523</span>
+      </div>
+      <span class="company">Biocon Ltd · Innovation-led Global Biopharma</span>
+    </div>
+    <div class="price-block">
+      <span class="ltp">₹425.75</span>
+      <span class="chg dn">−4.35 (−1.01%)</span>
+    </div>
+  </div>
+  <div class="topbar" style="border-top:0;border-bottom:1px solid var(--line);padding-top:8px;padding-bottom:8px;">
+    <div class="meta">
+      <span>SECTOR <b>PHARMA / BIOTECH</b></span>
+      <span>INDEX <b>NIFTY MIDCAP 150 • NIFTY PHARMA</b></span>
+      <span>ISIN <b>INE376G01013</b></span>
+      <span>BETA <b>0.84</b></span>
+    </div>
+    <div class="meta">
+      <span>AS OF <b>18-MAY-2026</b></span>
+    </div>
+  </div>
+
+  <!-- Report header -->
+  <div class="report-head">
+    <div>
+      <div class="report-title">Equity Risk &amp; Quality Report <em>— FY26 close</em></div>
+      <p class="report-sub">Independent forensic and fundamental assessment of Biocon Limited, prepared post-Q4FY26 results (7-May-2026). Integrated valuation, balance-sheet hygiene, growth durability, and street positioning into a single composite risk score (35/35/30 weighting).</p>
+    </div>
+    <div class="stamp">
+      <div>Report ID · <b>BIOCON · RR-2605-FY26</b></div>
+      <div>Analyst · <b>Equity Research Desk</b></div>
+      <div>Coverage · <b>Initiating / Refresh</b></div>
+      <div>Currency · <b>INR ₹ (Cr unless stated)</b></div>
+    </div>
+  </div>
+
+  <div class="page-inner">
+
+    <!-- Gauge + KPI strip -->
+    <div class="row two" style="margin-bottom:20px;">
+      <!-- Risk Gauge -->
+      <div class="panel">
+        <div class="panel-label">
+          <span>Composite Risk Score</span>
+          <span class="pl-tag">SCALE 0 → 100 (HIGHER = RISKIER)</span>
+        </div>
+        <div class="gauge-wrap">
+          <div class="gauge">
+            <svg viewBox="0 0 200 120">
+              <!-- Background arc segments -->
+              <path d="M 20 110 A 80 80 0 0 1 60 41.2" stroke="#1a3a2a" stroke-width="14" fill="none" stroke-linecap="butt"/>
+              <path d="M 60 41.2 A 80 80 0 0 1 100 30" stroke="#2a3a1a" stroke-width="14" fill="none" stroke-linecap="butt"/>
+              <path d="M 100 30 A 80 80 0 0 1 140 41.2" stroke="#3a2e10" stroke-width="14" fill="none" stroke-linecap="butt"/>
+              <path d="M 140 41.2 A 80 80 0 0 1 180 110" stroke="#3a1418" stroke-width="14" fill="none" stroke-linecap="butt"/>
+              <!-- Filled arc up to score 54 -->
+              <!-- 0..100 maps to 180..0 degrees; score 54 → angle 180 - (54/100)*180 = 82.8deg from x-axis -->
+              <!-- We'll just draw the arc up to ~54% along the half-circle -->
+              <path id="gaugeFill" d="M 20 110 A 80 80 0 0 1 113.5 33.7" stroke="url(#gg)" stroke-width="14" fill="none" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="gg" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0" stop-color="#3ddc97"/>
+                  <stop offset=".55" stop-color="#ffb547"/>
+                  <stop offset="1" stop-color="#ff5470"/>
+                </linearGradient>
+              </defs>
+              <!-- Needle at 54 -->
+              <line x1="100" y1="110" x2="113.5" y2="33.7" stroke="#e6e8ee" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="100" cy="110" r="6" fill="#08090d" stroke="#e6e8ee" stroke-width="2"/>
+              <!-- Tick labels -->
+              <text x="14" y="118" font-family="JetBrains Mono" font-size="8" fill="#5a6071">0</text>
+              <text x="92" y="22" font-family="JetBrains Mono" font-size="8" fill="#5a6071">50</text>
+              <text x="178" y="118" font-family="JetBrains Mono" font-size="8" fill="#5a6071">100</text>
+            </svg>
+            <div class="gauge-num">
+              <div class="n">54</div>
+              <div class="max">/ 100</div>
+              <div class="gauge-band">▼ Moderate</div>
+            </div>
+          </div>
+          <div class="gauge-side">
+            <div class="gs-title">Moderate Risk · Premium Valuation</div>
+            <div class="gs-sub">Operational turnaround intact; biosimilars segment delivering. But 150x trailing P/E and 4.68% ROE create asymmetric downside if biosimilar pricing weakens or US tariff drag persists.</div>
+            <div class="gs-meta">
+              <span>VAL. RISK <b style="color:var(--red);">72</b></span>
+              <span>BAL-SHEET <b style="color:var(--amber);">50</b></span>
+              <span>GROWTH <b style="color:var(--green);">38</b></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI strip (compact) -->
+      <div class="panel">
+        <div class="panel-label">
+          <span>Snapshot · Key Metrics</span>
+          <span class="pl-tag">CONSOLIDATED · TTM</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+          <div class="kpi">
+            <div class="k-label">Market Cap</div>
+            <div class="k-val">₹69,031 Cr</div>
+            <div class="k-sub">~US$ 8.2 B</div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">P/E (TTM)</div>
+            <div class="k-val">150.98×</div>
+            <div class="k-sub dn">vs sector median 31×</div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">P/B</div>
+            <div class="k-val">2.49×</div>
+            <div class="k-sub up">vs sector 4.67× (cheap)</div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">EPS · FY26</div>
+            <div class="k-val">₹2.82</div>
+            <div class="k-sub dn">vs ₹8.46 in FY25</div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">52W Range</div>
+            <div class="k-val">₹327.6–434.6</div>
+            <div class="k-sub">~2% off 52W high</div>
+          </div>
+          <div class="kpi">
+            <div class="k-label">1Y Return</div>
+            <div class="k-val" style="color:var(--green);">+8.48%</div>
+            <div class="k-sub">Nifty Pharma +4.81%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 12M price chart -->
+    <div class="panel">
+      <div class="chart-head">
+        <div class="ch-title">12-Month Price Trajectory <span style="font-family:var(--mono);font-weight:400;font-size:11px;color:var(--text-3);letter-spacing:1px;">· MAY 2025 → MAY 2026</span></div>
+        <div class="ch-meta">CLOSE · NSE · EOD</div>
+      </div>
+      <svg class="price-chart" viewBox="0 0 1200 260" preserveAspectRatio="none">
+        <!-- Grid lines -->
+        <defs>
+          <linearGradient id="areaGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#d4af37" stop-opacity=".18"/>
+            <stop offset="1" stop-color="#d4af37" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <g stroke="#1d212c" stroke-width="1" stroke-dasharray="2,4">
+          <line x1="0" y1="40" x2="1200" y2="40"/>
+          <line x1="0" y1="90" x2="1200" y2="90"/>
+          <line x1="0" y1="140" x2="1200" y2="140"/>
+          <line x1="0" y1="190" x2="1200" y2="190"/>
+          <line x1="0" y1="240" x2="1200" y2="240"/>
+        </g>
+        <!-- Y-axis labels (price levels). Range ~₹290 to ₹440 -->
+        <g font-family="JetBrains Mono" font-size="9" fill="#5a6071">
+          <text x="6" y="44">440</text>
+          <text x="6" y="94">405</text>
+          <text x="6" y="144">370</text>
+          <text x="6" y="194">335</text>
+          <text x="6" y="244">300</text>
+        </g>
+        <!-- X-axis labels -->
+        <g font-family="JetBrains Mono" font-size="9" fill="#5a6071" text-anchor="middle">
+          <text x="50" y="256">MAY</text>
+          <text x="142" y="256">JUN</text>
+          <text x="234" y="256">JUL</text>
+          <text x="326" y="256">AUG</text>
+          <text x="418" y="256">SEP</text>
+          <text x="510" y="256">OCT</text>
+          <text x="602" y="256">NOV</text>
+          <text x="694" y="256">DEC</text>
+          <text x="786" y="256">JAN</text>
+          <text x="878" y="256">FEB</text>
+          <text x="970" y="256">MAR</text>
+          <text x="1062" y="256">APR</text>
+          <text x="1154" y="256">MAY</text>
+        </g>
+
+        <!-- Area fill under line -->
+        <!-- Data points (May'25 → May'26). Y = 240 - ((price-290)/150)*200 approx -->
+        <!-- prices: 320,335,345,350,370,390,425,410,393,350,325,340,425 -->
+        <!-- ys:    197,176,162,155,126, 98, 35, 56, 80,140,176,154, 35 -->
+        <path d="M 50 197 L 142 176 L 234 162 L 326 155 L 418 126 L 510 98 L 602 35 L 694 56 L 786 80 L 878 140 L 970 176 L 1062 154 L 1154 35 L 1154 240 L 50 240 Z" fill="url(#areaGrad)"/>
+        <!-- Line -->
+        <polyline points="50,197 142,176 234,162 326,155 418,126 510,98 602,35 694,56 786,80 878,140 970,176 1062,154 1154,35"
+                  fill="none" stroke="#d4af37" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <!-- Annotated markers -->
+        <!-- 52W High (Nov) -->
+        <g>
+          <circle cx="602" cy="35" r="5" fill="#3ddc97" stroke="#08090d" stroke-width="2"/>
+          <line x1="602" y1="35" x2="602" y2="14" stroke="#3ddc97" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="602" y="10" font-family="JetBrains Mono" font-size="9" fill="#3ddc97" text-anchor="middle">52W HIGH · ₹434.60</text>
+        </g>
+        <!-- US Tariff (Apr) -->
+        <g>
+          <circle cx="1062" cy="154" r="5" fill="#ff5470" stroke="#08090d" stroke-width="2"/>
+          <line x1="1062" y1="154" x2="1062" y2="178" stroke="#ff5470" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="1062" y="192" font-family="JetBrains Mono" font-size="9" fill="#ff5470" text-anchor="middle">US TARIFF · 26%</text>
+        </g>
+        <!-- 52W Low (Mar) -->
+        <g>
+          <circle cx="970" cy="176" r="5" fill="#ff5470" stroke="#08090d" stroke-width="2"/>
+          <line x1="970" y1="176" x2="970" y2="200" stroke="#ff5470" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="970" y="214" font-family="JetBrains Mono" font-size="9" fill="#ff5470" text-anchor="middle">52W LOW · ₹327.60</text>
+        </g>
+        <!-- Q4 results (May'26) -->
+        <g>
+          <circle cx="1154" cy="35" r="5" fill="#7cc1ff" stroke="#08090d" stroke-width="2"/>
+          <line x1="1154" y1="35" x2="1100" y2="14" stroke="#7cc1ff" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="1090" y="10" font-family="JetBrains Mono" font-size="9" fill="#7cc1ff" text-anchor="end">Q4FY26 · BOSAYA APRVD</text>
+        </g>
+        <!-- Lenalidomide drop (Aug-Sep'25 transition) -->
+        <g>
+          <circle cx="418" cy="126" r="4" fill="#ffb547" stroke="#08090d" stroke-width="2"/>
+          <text x="418" y="116" font-family="JetBrains Mono" font-size="9" fill="#ffb547" text-anchor="middle">▲ MALAYSIA · VAI</text>
+        </g>
+      </svg>
+      <div class="chart-legend">
+        <span class="lg"><span class="dot" style="background:#d4af37;"></span>BIOCON · CLOSE</span>
+        <span class="lg"><span class="dot" style="background:#3ddc97;"></span>BULLISH MARKER</span>
+        <span class="lg"><span class="dot" style="background:#ff5470;"></span>BEARISH MARKER</span>
+        <span class="lg"><span class="dot" style="background:#7cc1ff;"></span>CATALYST</span>
+      </div>
+    </div>
+
+    <!-- ============ VALUATION ============ -->
+    <div class="section-head">
+      <h2>Valuation</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">06 METRICS · BENCHMARKED VS PHARMA PEERS</span>
+    </div>
+    <div class="card-grid">
+      <div class="mcard red">
+        <div class="mc-top">
+          <span class="mc-name">P/E (TTM)</span>
+          <span class="mc-flag red">MISS</span>
+        </div>
+        <div class="mc-val">150.98×</div>
+        <div class="mc-bench">Sector median: 31× · 5Y avg: 56×</div>
+        <div class="mc-note">FY26 PAT collapsed on Lenalidomide base effect &amp; exceptional items. Multiple is pricing in full earnings normalisation.</div>
+      </div>
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">P/B</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">2.49×</div>
+        <div class="mc-bench">Sector median: 4.67× · ~47% discount</div>
+        <div class="mc-note">Cheap on book — book value ₹200/share absorbed Biocon Biologics goodwill at lower marks post-integration.</div>
+      </div>
+      <div class="mcard amber">
+        <div class="mc-top">
+          <span class="mc-name">EV / EBITDA</span>
+          <span class="mc-flag amber">CAUTION</span>
+        </div>
+        <div class="mc-val">~21.5×</div>
+        <div class="mc-bench">Sector median: 18× · Biosimilar peers: 22–28×</div>
+        <div class="mc-note">Defensible IF biosimilars EBITDA margin holds at 26%+; vulnerable to price erosion in mature MAbs.</div>
+      </div>
+      <div class="mcard red">
+        <div class="mc-top">
+          <span class="mc-name">PEG (FWD)</span>
+          <span class="mc-flag red">MISS</span>
+        </div>
+        <div class="mc-val">2.4×</div>
+        <div class="mc-bench">Comfort zone: &lt;1.5×</div>
+        <div class="mc-note">Even on 15–18% projected EBITDA CAGR, the PE relative to growth remains elevated. No margin of safety here.</div>
+      </div>
+      <div class="mcard red">
+        <div class="mc-top">
+          <span class="mc-name">Dividend Yield</span>
+          <span class="mc-flag red">MISS</span>
+        </div>
+        <div class="mc-val">0.12%</div>
+        <div class="mc-bench">Final DPS FY26: ₹0.50 · Sector avg: 0.8%</div>
+        <div class="mc-note">Capital is being redeployed into debt reduction &amp; biosimilar pipeline — not a yield story.</div>
+      </div>
+      <div class="mcard amber">
+        <div class="mc-top">
+          <span class="mc-name">Mcap / Sales</span>
+          <span class="mc-flag amber">CAUTION</span>
+        </div>
+        <div class="mc-val">4.08×</div>
+        <div class="mc-bench">Pharma median: 3.2× · Pure biosim peers: 5–7×</div>
+        <div class="mc-note">Rich for a partly generic-mix company; only justified if biosimilars segment scales to &gt;65% of revenue (currently 60%).</div>
+      </div>
+    </div>
+
+    <!-- ============ FINANCIAL HEALTH ============ -->
+    <div class="section-head">
+      <h2>Financial Health</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">06 METRICS · BALANCE SHEET HYGIENE</span>
+    </div>
+    <div class="card-grid">
+      <div class="mcard amber">
+        <div class="mc-top">
+          <span class="mc-name">Debt / Equity</span>
+          <span class="mc-flag amber">CAUTION</span>
+        </div>
+        <div class="mc-val">0.82×</div>
+        <div class="mc-bench">3Y trend: 0.47 → 0.99 → 0.82 (deleveraging)</div>
+        <div class="mc-note">Legacy Viatris biosimilars buyout debt. Management committed to FCF deployment for prepayment in FY27.</div>
+      </div>
+      <div class="mcard amber">
+        <div class="mc-top">
+          <span class="mc-name">Interest Coverage</span>
+          <span class="mc-flag amber">CAUTION</span>
+        </div>
+        <div class="mc-val">~3.1×</div>
+        <div class="mc-bench">Safe threshold: &gt;4× · Improving QoQ</div>
+        <div class="mc-note">EBITDA recovery is closing the gap; refinancing window opens in 1H-FY27.</div>
+      </div>
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">CFO / EBITDA</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">~78%</div>
+        <div class="mc-bench">Healthy &gt;70% conversion</div>
+        <div class="mc-note">Working capital discipline post-integration; biosimilars receivables tightened in Q3/Q4-FY26.</div>
+      </div>
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">Promoter Holding</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">44.91%</div>
+        <div class="mc-bench">Stable · zero pledge</div>
+        <div class="mc-note">Kiran Mazumdar-Shaw promoter group stake unchanged QoQ. Skin-in-the-game intact.</div>
+      </div>
+      <div class="mcard red">
+        <div class="mc-top">
+          <span class="mc-name">FII Holding</span>
+          <span class="mc-flag red">MISS</span>
+        </div>
+        <div class="mc-val">7.52%</div>
+        <div class="mc-bench">Down from 11.2% a year ago</div>
+        <div class="mc-note">Foreign outflow accelerated post-US tariff news (Apr-26). DII (24.07%) is absorbing supply.</div>
+      </div>
+      <div class="mcard red">
+        <div class="mc-top">
+          <span class="mc-name">ROE</span>
+          <span class="mc-flag red">MISS</span>
+        </div>
+        <div class="mc-val">4.68%</div>
+        <div class="mc-bench">Sector median: 14% · 5Y avg (BIOCON): 6.2%</div>
+        <div class="mc-note">Capital efficiency remains the single biggest red flag. Goodwill bloat from Biocon Biologics weighing on returns.</div>
+      </div>
+    </div>
+
+    <!-- ============ GROWTH ============ -->
+    <div class="section-head">
+      <h2>Growth</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">06 METRICS · FY26 PRINT, ADJ. BASIS</span>
+    </div>
+    <div class="card-grid">
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">Revenue YoY</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">+10.9%</div>
+        <div class="mc-bench">+14% adj. · FY26: ₹16,927 Cr</div>
+        <div class="mc-note">Broad-based — biosimilars +16%, generics +17% (adj.), Syngene research services stable.</div>
+      </div>
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">EBITDA YoY</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">+25% adj.</div>
+        <div class="mc-bench">FY26 EBITDA ₹3,798 Cr · Margin 22%</div>
+        <div class="mc-note">Operating leverage kicking in post-capex phase; Q4 margin at 23% (+300 bps QoQ).</div>
+      </div>
+      <div class="mcard red">
+        <div class="mc-top">
+          <span class="mc-name">Net Profit YoY</span>
+          <span class="mc-flag red">MISS</span>
+        </div>
+        <div class="mc-val">−74.2%</div>
+        <div class="mc-bench">FY26 PAT ₹368.8 Cr vs ₹1,429.4 Cr FY25</div>
+        <div class="mc-note">Headline collapse — FY25 had one-time Lenalidomide gain; on a clean basis PAT up +323%. Optics still poor.</div>
+      </div>
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">Biosimilars Rev</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">+16% YoY</div>
+        <div class="mc-bench">₹10,431 Cr · 60% of mix · EBITDA margin 26%</div>
+        <div class="mc-note">6.5M+ patients on therapy. Denosumab biosimilars Bosaya™ &amp; Aukelso™ launched US Q4-FY26.</div>
+      </div>
+      <div class="mcard green">
+        <div class="mc-top">
+          <span class="mc-name">Generics Rev</span>
+          <span class="mc-flag green">BEAT</span>
+        </div>
+        <div class="mc-val">+17% adj.</div>
+        <div class="mc-bench">₹3,168 Cr · Q4 EBITDA margin 8% (+300bps QoQ)</div>
+        <div class="mc-note">gLiraglutide Europe launch driving Q4 momentum; GLP-1 ramp is the optionality.</div>
+      </div>
+      <div class="mcard red">
+        <div class="mc-top">
+          <span class="mc-name">EPS YoY (reported)</span>
+          <span class="mc-flag red">MISS</span>
+        </div>
+        <div class="mc-val">−66.7%</div>
+        <div class="mc-bench">FY26: ₹2.82 vs FY25: ₹8.46</div>
+        <div class="mc-note">Same base-effect distortion as PAT. Consensus FY27e EPS: ₹6.20–7.50 — recovery pending.</div>
+      </div>
+    </div>
+
+    <!-- Score Breakdown -->
+    <div class="panel" style="margin-top:24px;">
+      <div class="panel-label">
+        <span>Score Breakdown · Weighted Composite</span>
+        <span class="pl-tag">VAL 35 / HEALTH 35 / GROWTH 30</span>
+      </div>
+      <div class="breakdown">
+        <div class="bd-row">
+          <div class="bd-label">Valuation</div>
+          <div class="bd-bar high"><div style="width:72%"></div></div>
+          <div class="bd-score">72</div>
+          <div class="bd-weight">×0.35</div>
+        </div>
+        <div class="bd-row">
+          <div class="bd-label">Fin. Health</div>
+          <div class="bd-bar mid"><div style="width:50%"></div></div>
+          <div class="bd-score">50</div>
+          <div class="bd-weight">×0.35</div>
+        </div>
+        <div class="bd-row">
+          <div class="bd-label">Growth</div>
+          <div class="bd-bar low"><div style="width:38%"></div></div>
+          <div class="bd-score">38</div>
+          <div class="bd-weight">×0.30</div>
+        </div>
+        <div class="bd-row" style="border-top:1px solid var(--line-2);padding-top:14px;border-bottom:none;">
+          <div class="bd-label" style="color:var(--gold);">COMPOSITE</div>
+          <div class="bd-bar"><div style="width:54%;background:linear-gradient(90deg,var(--accent),var(--gold));"></div></div>
+          <div class="bd-score" style="color:var(--gold);font-size:16px;">54</div>
+          <div class="bd-weight">/ 100</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- =========================== PAGE 2 =========================== -->
+<section class="page">
+  <span class="page-no">PG 02 / 02</span>
+
+  <div class="report-head">
+    <div>
+      <div class="report-title">Operating Detail <em>&amp; Verdict</em></div>
+      <p class="report-sub">Quarterly trajectory, Q4FY26 print, dual-column catalyst-vs-risk thesis, sell-side positioning, and the bottom-line call.</p>
+    </div>
+    <div class="stamp">
+      <div>BIOCON · <b>NSE 532523</b></div>
+      <div>CMP · <b>₹425.75</b></div>
+      <div>RISK SCORE · <b style="color:var(--amber);">54 / 100</b></div>
+      <div>CALL · <b style="color:var(--amber);">HOLD · ACCUMULATE ON DIPS</b></div>
+    </div>
+  </div>
+
+  <div class="page-inner">
+
+    <!-- Quarterly Trend Table -->
+    <div class="panel">
+      <div class="panel-label">
+        <span>Quarterly Trend · Consolidated</span>
+        <span class="pl-tag">LAST 6 QUARTERS · ₹ Cr</span>
+      </div>
+      <table class="qtable">
+        <thead>
+          <tr>
+            <th>Quarter</th>
+            <th>Revenue</th>
+            <th>EBITDA</th>
+            <th>EBITDA %</th>
+            <th>PAT</th>
+            <th>EPS (₹)</th>
+            <th>YoY PAT</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Q3FY25 · Dec'24</td>
+            <td>3,821</td>
+            <td>936</td>
+            <td>24.5%</td>
+            <td>81.1</td>
+            <td>0.21</td>
+            <td class="neg">−75%</td>
+          </tr>
+          <tr>
+            <td>Q4FY25 · Mar'25</td>
+            <td>4,417</td>
+            <td>1,115</td>
+            <td>25.2%</td>
+            <td>459.4</td>
+            <td>2.88</td>
+            <td class="pos">+153%</td>
+          </tr>
+          <tr>
+            <td>Q1FY26 · Jun'25</td>
+            <td>4,290</td>
+            <td>980</td>
+            <td>22.8%</td>
+            <td>11.0</td>
+            <td>0.04</td>
+            <td class="neg">−98%</td>
+          </tr>
+          <tr>
+            <td>Q2FY26 · Sep'25</td>
+            <td>4,342</td>
+            <td>1,022</td>
+            <td>23.5%</td>
+            <td>15.4</td>
+            <td>0.06</td>
+            <td class="neg">−43%</td>
+          </tr>
+          <tr>
+            <td>Q3FY26 · Dec'25</td>
+            <td>3,778</td>
+            <td>938</td>
+            <td>24.8%</td>
+            <td>143.8</td>
+            <td>0.76</td>
+            <td class="pos">+472%</td>
+          </tr>
+          <tr class="latest">
+            <td>Q4FY26 · Mar'26</td>
+            <td>4,517</td>
+            <td>1,073</td>
+            <td>23.0%</td>
+            <td>198.6</td>
+            <td>0.76</td>
+            <td class="neg">−57%*</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="micro" style="margin-top:10px;color:var(--text-3);">
+        *Q4FY26 PAT impacted by ₹80.4 Cr exceptional outgo (new labour code, restructuring). Pre-exceptional PAT ₹179 Cr (+64% YoY adj.).
+      </div>
+    </div>
+
+    <!-- Latest Earnings Update -->
+    <div style="margin-top:20px;">
+      <div class="earn-card">
+        <div class="earn-head">
+          <h3>Q4FY26 Earnings Update · 07-May-2026</h3>
+          <span class="tag">LIVE PRINT · ADJ. POSITIVE</span>
+        </div>
+        <div class="earn-grid">
+          <div>
+            <div class="eg-lbl">Revenue</div>
+            <div class="eg-val">₹4,517 Cr</div>
+            <div class="eg-sub pos" style="color:var(--green);">+10% YoY adj.</div>
+          </div>
+          <div>
+            <div class="eg-lbl">EBITDA</div>
+            <div class="eg-val">₹1,073 Cr</div>
+            <div class="eg-sub pos" style="color:var(--green);">+29% YoY adj. · 23% margin</div>
+          </div>
+          <div>
+            <div class="eg-lbl">PAT (pre-exc.)</div>
+            <div class="eg-val">₹179 Cr</div>
+            <div class="eg-sub pos" style="color:var(--green);">+64% YoY adj.</div>
+          </div>
+          <div>
+            <div class="eg-lbl">Final Dividend</div>
+            <div class="eg-val">₹0.50/sh</div>
+            <div class="eg-sub" style="color:var(--text-3);">FY ex-date Jul-2026</div>
+          </div>
+        </div>
+        <div class="earn-body">
+          <b>Print quality:</b> Headline PAT fell 57% YoY to ₹198.6 Cr, but the optical miss is entirely the FY25 generic Lenalidomide base and an ₹80.4 Cr one-off (new labour code + restructuring). On a like-to-like basis the print was clean — biosimilars segment delivered ₹2,756 Cr (+12% YoY) at <b>26% EBITDA margin</b>, generics rebounded with gLiraglutide Europe launches (margin +300 bps QoQ to 8%), and CRDMO (Syngene) printed ₹1,037 Cr.
+          <br><br>
+          <b>Management commentary:</b> Kiran Mazumdar-Shaw flagged FY26 as a "pivotal integration year" — Biocon Biologics fully absorbed into the parent. FY27 strategic stance shifts from <i>Preserve</i> to <i>Consolidate</i>: free-cash-flow now deployed against debt and biosimilar launches (Denosumab US ramp, Aflibercept Eylea biosimilar pipeline). Multiple Health Canada &amp; US FDA approvals in the quarter (Micafungin injection most recent, 14-May-2026).
+        </div>
+      </div>
+    </div>
+
+    <!-- Catalysts vs Risks -->
+    <div class="section-head">
+      <h2>Thesis · Catalysts vs Risks</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">DUAL-COLUMN · BULL CASE / BEAR CASE</span>
+    </div>
+    <div class="dual">
+      <div class="col-cat">
+        <div class="col-head">
+          <h3>▲ Catalysts</h3>
+          <span class="ct">BULL CASE</span>
+        </div>
+        <div class="pt"><span class="pt-n">01</span><span class="pt-t"><b>Denosumab biosimilars US ramp.</b> Bosaya™ &amp; Aukelso™ (Prolia/Xgeva biosimilars) launched Q4FY26; ~$4B reference market.</span></div>
+        <div class="pt"><span class="pt-n">02</span><span class="pt-t"><b>Integration done.</b> Biocon Biologics merged with parent — leaner cost structure, unified P&amp;L, no minority leakage.</span></div>
+        <div class="pt"><span class="pt-n">03</span><span class="pt-t"><b>GLP-1 optionality.</b> Liraglutide Europe launch (UK first, EU rollout in FY27); positions Biocon early in the GLP-1 biosimilar wave.</span></div>
+        <div class="pt"><span class="pt-n">04</span><span class="pt-t"><b>Operating leverage.</b> Capex phase ending; biosimilars EBITDA margin already at 26% and scalable as new launches absorb fixed costs.</span></div>
+        <div class="pt"><span class="pt-n">05</span><span class="pt-t"><b>Debt reduction.</b> FCF re-routed to prepay Viatris-acquisition debt; D/E target &lt;0.6 by FY27-end.</span></div>
+        <div class="pt"><span class="pt-n">06</span><span class="pt-t"><b>Industry tailwind.</b> India biosimilars CAGR projected 14–21% (FY25–FY33); patent cliff for Eylea, Stelara, Prolia opens fresh windows.</span></div>
+        <div class="pt"><span class="pt-n">07</span><span class="pt-t"><b>Malaysia plant cleared.</b> US-FDA VAI status removed compliance overhang on Aspart and follow-on biosimilars.</span></div>
+      </div>
+      <div class="col-risk">
+        <div class="col-head">
+          <h3>▼ Risks</h3>
+          <span class="ct">BEAR CASE</span>
+        </div>
+        <div class="pt"><span class="pt-n">01</span><span class="pt-t"><b>Stretched valuation.</b> 150× P/E with ROE of 4.68% — any earnings miss triggers sharp de-rating; bear targets ₹270–320 (−25 to −37%).</span></div>
+        <div class="pt"><span class="pt-n">02</span><span class="pt-t"><b>US tariff overhang.</b> 26% reciprocal tariff announced 02-Apr-2026 — direct impact limited but FII outflows and INR weakness create earnings headwind.</span></div>
+        <div class="pt"><span class="pt-n">03</span><span class="pt-t"><b>FII unwinding.</b> Holding down from 11.2% to 7.52% over 12M; DII absorption is masking the supply but pace is unsustainable.</span></div>
+        <div class="pt"><span class="pt-n">04</span><span class="pt-t"><b>Biosimilar price erosion.</b> Mature MAbs (Hulio, Ogivri) facing 15–20% annual price decay in US; new launches need to outpace.</span></div>
+        <div class="pt"><span class="pt-n">05</span><span class="pt-t"><b>Competition intensifying.</b> Samsung Bioepis, Sandoz, Celltrion, Pfizer all chasing same Denosumab / Aflibercept windows.</span></div>
+        <div class="pt"><span class="pt-n">06</span><span class="pt-t"><b>Regulatory tail-risk.</b> Any USFDA inspection observation (483, warning letter) on Bangalore / Vizag / Malaysia could derail margin trajectory.</span></div>
+        <div class="pt"><span class="pt-n">07</span><span class="pt-t"><b>Capital efficiency drag.</b> Goodwill from Biocon Biologics buyout (~₹13,000 Cr) suppresses ROE structurally for next 2–3 years.</span></div>
+      </div>
+    </div>
+
+    <!-- Expert opinions -->
+    <div class="section-head">
+      <h2>Street View · Sell-side Consensus</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">19 ANALYSTS · 11 BUY / 5 SELL / 3 HOLD</span>
+    </div>
+    <div class="expert-grid">
+      <div class="ex buy">
+        <div class="ex-broker">Edelweiss</div>
+        <div class="ex-call">BUY</div>
+        <div class="ex-tp">₹480</div>
+        <div class="ex-up">Upside +12.7% · Dec-25</div>
+      </div>
+      <div class="ex buy">
+        <div class="ex-broker">Motilal Oswal</div>
+        <div class="ex-call">BUY</div>
+        <div class="ex-tp">₹460–480</div>
+        <div class="ex-up">Upside +8–13% · SOTP based</div>
+      </div>
+      <div class="ex buy">
+        <div class="ex-broker">JM Financial</div>
+        <div class="ex-call">BUY</div>
+        <div class="ex-tp">₹476</div>
+        <div class="ex-up">Upside +11.8%</div>
+      </div>
+      <div class="ex buy">
+        <div class="ex-broker">Axis Securities</div>
+        <div class="ex-call">BUY</div>
+        <div class="ex-tp">₹450</div>
+        <div class="ex-up">Upside +5.7%</div>
+      </div>
+      <div class="ex buy">
+        <div class="ex-broker">HSBC</div>
+        <div class="ex-call">BUY</div>
+        <div class="ex-tp">₹430</div>
+        <div class="ex-up">Upside +1.0% · Operational turnaround</div>
+      </div>
+      <div class="ex hold">
+        <div class="ex-broker">Goldman Sachs</div>
+        <div class="ex-call">NEUTRAL</div>
+        <div class="ex-tp">₹375</div>
+        <div class="ex-up">Downside −11.9% · Margin caution</div>
+      </div>
+      <div class="ex sell">
+        <div class="ex-broker">ICICI Securities</div>
+        <div class="ex-call">SELL</div>
+        <div class="ex-tp">₹320</div>
+        <div class="ex-up">Downside −24.8% · Valuation reset</div>
+      </div>
+      <div class="ex hold">
+        <div class="ex-broker">Consensus (19)</div>
+        <div class="ex-call">BUY (avg)</div>
+        <div class="ex-tp">₹435</div>
+        <div class="ex-up">Upside +2.2% · Median ₹430</div>
+      </div>
+    </div>
+
+    <!-- Industry context -->
+    <div class="section-head">
+      <h2>Industry Context</h2>
+      <div class="sh-rule"></div>
+      <span class="sh-tag">SECTOR GROWTH &amp; MARKET SHARE</span>
+    </div>
+    <div class="ind">
+      <div class="ind-block">
+        <h4>Indian Biosimilars Market</h4>
+        <div class="ind-row"><span class="l">Market Size FY25</span><span class="v">~US$ 1.51 Bn</span></div>
+        <div class="ind-row"><span class="l">Projected FY33</span><span class="v">~US$ 6.44 Bn</span></div>
+        <div class="ind-row"><span class="l">CAGR (FY25–FY33)</span><span class="v" style="color:var(--green);">19.9%</span></div>
+        <div class="ind-row"><span class="l">Biocon est. share (India biosim)</span><span class="v" style="color:var(--gold);">~30–35%</span></div>
+        <div class="ind-row"><span class="l">Biocon share in Global Biosim</span><span class="v">~4–5%</span></div>
+        <div class="ind-row"><span class="l">India share of Global Biosim</span><span class="v">3.2%</span></div>
+      </div>
+      <div class="ind-block">
+        <h4>Indian Pharma (Broader)</h4>
+        <div class="ind-row"><span class="l">Indian Pharma market (FY26)</span><span class="v">~₹4.2 lakh Cr</span></div>
+        <div class="ind-row"><span class="l">Nifty Pharma 1Y return</span><span class="v" style="color:var(--green);">+4.81%</span></div>
+        <div class="ind-row"><span class="l">Biocon share of Indian Pharma</span><span class="v">~1.7%</span></div>
+        <div class="ind-row"><span class="l">Pharma sector P/E median</span><span class="v">31×</span></div>
+        <div class="ind-row"><span class="l">BIOCON premium to median</span><span class="v" style="color:var(--red);">+387%</span></div>
+        <div class="ind-row"><span class="l">Peer set</span><span class="v">Dr Reddy's · Cipla · Sun Pharma</span></div>
+      </div>
+    </div>
+
+    <!-- Verdict -->
+    <div class="verdict">
+      <div class="verdict-head">
+        <h3>Bottom Line</h3>
+        <span class="vh-tag">FINAL CALL · ANALYST DESK</span>
+      </div>
+
+      <div class="rating-bar">
+        <div class="rb-track">
+          <!-- Marker at ~55% (HOLD with positive bias) -->
+          <div class="rb-marker" style="left:55%;"></div>
+        </div>
+        <div class="rb-labels">
+          <span>STRONG SELL</span>
+          <span>SELL</span>
+          <span>HOLD</span>
+          <span>ACCUMULATE</span>
+          <span>STRONG BUY</span>
+        </div>
+      </div>
+
+      <div class="verdict-text">
+        <b>Rating: HOLD · Accumulate on dips below ₹370.</b> The operational story is real — biosimilars at 26% EBITDA margin, integration complete, debt trajectory turning, multiple regulatory wins (Bosaya, Aukelso, Vevzuo, Micafungin in last 90 days). FY27 should see EPS rebuild toward ₹6.5–7.5 as the Lenalidomide base effect washes out and Denosumab US gathers volume.
+        <br><br>
+        <b>But the entry price matters more than the story.</b> At ₹425.75, the stock prices in nearly all of FY27's expected earnings recovery. Consensus 12M TP of ₹435 implies just <b>+2.2%</b> upside, while the bear case (ICICI Sec ₹320) flags <b>−25%</b> downside — asymmetric to the wrong side. ROE of 4.68% does not support a 150× P/E without faith-based extrapolation.
+        <br><br>
+        <b>Tactical view:</b> Existing holders → <span class="tag">HOLD</span>. Fresh money → <span class="tag" style="background:var(--amber-soft);color:var(--amber);">WAIT</span> for ₹350–370 zone (where 19.9% biosim industry CAGR + 21× EV/EBITDA gives genuine margin of safety). Aggressive entry only on biosim launch beat in Q1FY27 (Aug-2026 print) or US tariff resolution. <b>Hard stop on positions: ₹305</b> (below 52W low + retest invalidation).
+        <br><br>
+        <b>Position sizing:</b> Cap at 2–3% of equity portfolio. Treat as a thematic biosimilars proxy, not a core compounder, until ROE crosses 10%.
+      </div>
+    </div>
+
+    <!-- Actions / Disclaimer -->
+    <div class="actions">
+      <div class="disclaim">
+        <b>Disclaimer:</b> This report is generated for educational and analytical purposes only and is not personalised investment advice. Data sourced from BSE/NSE filings, Biocon investor disclosures, and broker reports as of 18-May-2026. Equity research is opinion; markets are not. Past performance ≠ future results. Consult a SEBI-registered investment adviser before acting.
+      </div>
+      <button class="copy-btn" id="copyBtn" onclick="copyReport()">⧉ Copy Report Summary</button>
+    </div>
+
+  </div>
+</section>
+
+<script>
+function copyReport(){
+  const summary = `BIOCON · NSE 532523 · Risk Score Report (FY26)
+─────────────────────────────────────────────
+CMP: ₹425.75   1Y Return: +8.48%   Mcap: ₹69,031 Cr
+P/E: 150.98×   P/B: 2.49×   ROE: 4.68%   D/E: 0.82
+EPS (FY26): ₹2.82   Div Yield: 0.12%
+
+COMPOSITE RISK SCORE: 54 / 100  (Moderate)
+  Valuation Risk:    72 (×0.35)
+  Financial Health:  50 (×0.35)
+  Growth Risk:       38 (×0.30)
+
+Q4FY26 PRINT (07-May-2026)
+  Revenue ₹4,517 Cr (+10% YoY adj.)
+  EBITDA  ₹1,073 Cr (23% margin · +29% adj.)
+  PAT (pre-exc.) ₹179 Cr (+64% YoY adj.)
+  Final Dividend ₹0.50 / share
+
+FY26 FULL YEAR
+  Revenue ₹16,927–17,270 Cr (+14% adj.)
+  EBITDA  ₹3,798 Cr (+25% adj.)
+  Biosimilars ₹10,431 Cr (+16% · 60% of mix)
+
+STREET (19 analysts · 11B/5S/3H)
+  Consensus TP: ₹435  (Upside +2.2%)
+  Bull: Edelweiss / MOSL / JM Fin / Axis  → ₹450–480
+  Neutral: Goldman ₹375
+  Bear: ICICI Sec ₹320
+
+INDUSTRY
+  India Biosimilars CAGR (FY25–33): 19.9%
+  Biocon share of India biosim: ~30–35%
+  Biocon share of Indian pharma: ~1.7%
+
+VERDICT: HOLD · Accumulate on dips below ₹370
+  Stop loss: ₹305  | Position cap: 2–3% of equity book
+  Catalysts: Denosumab US ramp, debt reduction, GLP-1
+  Risks: 150× P/E, FII outflow, US tariff, ROE 4.68%
+
+Generated: 21-May-2026 · Report ID BIOCON-RR-2605-FY26`;
+  navigator.clipboard.writeText(summary).then(()=>{
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copied to Clipboard';
+    btn.classList.add('copied');
+    setTimeout(()=>{
+      btn.textContent = '⧉ Copy Report Summary';
+      btn.classList.remove('copied');
+    }, 2400);
+  });
+}
+</script>
+</body>
+</html>
